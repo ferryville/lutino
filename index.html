@@ -133,7 +133,7 @@
             <main>
                 <!-- View Toggle -->
                 <div id="main-nav" class="mb-6 flex justify-center space-x-1 sm:space-x-2 flex-wrap">
-                    <button id="pouleViewBtn" class="view-button font-bold py-2 px-4 sm:px-6 rounded-lg transition duration-300 mb-2">Résultat par Tournoi</button>
+                    <button id="pouleViewBtn" class="view-button font-bold py-2 px-4 sm:px-6 rounded-lg transition duration-300 mb-2">Résultats par Tournoi</button>
                     <button id="cumulativeViewBtn" class="view-button font-bold py-2 px-4 sm:px-6 rounded-lg transition duration-300 mb-2">Perf. Joueur</button>
                     <button id="top5ViewBtn" class="view-button font-bold py-2 px-4 sm:px-6 rounded-lg transition duration-300 mb-2">Top 5 - Joueurs</button>
                     <button id="clubPerformanceViewBtn" class="view-button font-bold py-2 px-4 sm:px-6 rounded-lg transition duration-300 mb-2">Perf. Club</button>
@@ -173,6 +173,7 @@
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joueur/Joueuse</th>
                                     <th scope="col" class="sortable-header px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-sort-by="totalG">M G<span class="sort-icon"></span></th>
                                     <th scope="col" class="sortable-header px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-sort-by="totalP">M P<span class="sort-icon"></span></th>
+                                    <th scope="col" class="sortable-header px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-sort-by="matchWinPercentage">Win % (Matchs)<span class="sort-icon"></span></th>
                                     <th scope="col" class="sortable-header px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-sort-by="totalJG">J G<span class="sort-icon"></span></th>
                                     <th scope="col" class="sortable-header px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-sort-by="totalJP">J P<span class="sort-icon"></span></th>
                                     <th scope="col" class="sortable-header px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-sort-by="winPercentage">Win % (Jeux)<span class="sort-icon"></span></th>
@@ -220,8 +221,11 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
                             <span>Retour</span>
                         </button>
-                        <div id="playerDetailName" class="text-center mb-6"></div>
-                        <div class="overflow-x-auto">
+                        <div id="playerDetailHeader">
+                           <!-- Player summary will be injected here -->
+                        </div>
+                        <div class="overflow-x-auto mt-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-3">Historique des Tournois</h3>
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
@@ -303,9 +307,9 @@
         const clubPerformanceContent = document.querySelector('#clubPerformanceContent');
 
         const backBtn = document.querySelector('#backBtn');
-        const playerDetailName = document.querySelector('#playerDetailName');
+        const playerDetailHeader = document.querySelector('#playerDetailHeader');
         const playerDetailTableBody = document.querySelector('#playerDetailTableBody');
-        
+
         // --- DATA PROCESSING ---
         function getCategoryFromPouleKey(pouleKey) {
             const upperKey = pouleKey.toUpperCase();
@@ -552,7 +556,11 @@
                 if (column === 'winPercentage') {
                     valA = a.totalJG + a.totalJP > 0 ? a.totalJG / (a.totalJG + a.totalJP) : -1;
                     valB = b.totalJG + b.totalJP > 0 ? b.totalJG / (b.totalJG + b.totalJP) : -1;
-                } else {
+                } else if(column === 'matchWinPercentage') {
+                    valA = a.totalG + a.totalP > 0 ? a.totalG / (a.totalG + a.totalP) : -1;
+                    valB = b.totalG + b.totalP > 0 ? b.totalG / (b.totalG + b.totalP) : -1;
+                }
+                else {
                     valA = a[column];
                     valB = b[column];
                 }
@@ -574,6 +582,9 @@
             playersArray.forEach((player, index) => {
                 const totalGames = player.totalJG + player.totalJP;
                 const winPercentage = totalGames > 0 ? `${((player.totalJG / totalGames) * 100).toFixed(0)}%` : 'N/A';
+                const totalMatches = player.totalG + player.totalP;
+                const matchWinPercentage = totalMatches > 0 ? `${((player.totalG / totalMatches) * 100).toFixed(0)}%` : 'N/A';
+
                 const row = document.createElement('tr');
                 row.dataset.license = player.license;
                 row.dataset.category = category;
@@ -583,6 +594,7 @@
                     <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm font-medium text-gray-900">${player.name}</div><div class="text-sm text-gray-500">${player.club} - ${player.license}</div></td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">${player.totalG}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-red-600">${player.totalP}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-semibold">${matchWinPercentage}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${player.totalJG}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${player.totalJP}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-indigo-600 font-semibold">${winPercentage}</td>`;
@@ -597,7 +609,50 @@
              const playerData = cumulativeData[category]?.[license];
             if(!playerData) return;
             
-            playerDetailName.innerHTML = `<h2 class="text-2xl font-bold text-center text-gray-800">Historique de ${playerData.name}</h2><p class="text-md text-center text-gray-500 mt-1">${playerData.club} - ${playerData.license}</p>`;
+            // Calculate summary stats
+            const tournamentsPlayed = playerData.tournaments.length;
+            const tournamentsWon = playerData.tournaments.filter(t => t.rank === 1).length;
+            const tournamentWinRate = tournamentsPlayed > 0 ? (tournamentsWon / tournamentsPlayed) * 100 : 0;
+            const totalMatches = playerData.totalG + playerData.totalP;
+            const matchWinRate = totalMatches > 0 ? (playerData.totalG / totalMatches) * 100 : 0;
+            const totalGames = playerData.totalJG + playerData.totalJP;
+            const gameWinRate = totalGames > 0 ? (playerData.totalJG / totalGames) * 100 : 0;
+
+            playerDetailHeader.innerHTML = `
+                <div class="text-center">
+                    <h2 class="text-2xl font-bold text-gray-800">${playerData.name}</h2>
+                    <p class="text-md text-gray-500 mt-1">${playerData.club} - ${playerData.license}</p>
+                </div>
+                <div class="mt-6 border-t border-b border-gray-200 py-4">
+                    <dl class="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-4">
+                        <div class="text-center border-r border-gray-200">
+                            <dt class="text-sm font-medium text-gray-500">Tournois Joués</dt>
+                            <dd class="mt-1 text-2xl font-semibold text-indigo-600">${tournamentsPlayed}</dd>
+                        </div>
+                        <div class="text-center sm:border-r border-gray-200">
+                            <dt class="text-sm font-medium text-gray-500">Tournois Gagnés</dt>
+                            <dd class="mt-1 text-2xl font-semibold text-indigo-600">${tournamentsWon} (${tournamentWinRate.toFixed(0)}%)</dd>
+                        </div>
+                         <div class="text-center border-t border-gray-200 pt-4 col-span-2 sm:border-t-0 sm:pt-0 sm:col-span-1">
+                            <dt class="text-sm font-medium text-gray-500">Matchs Gagnés</dt>
+                            <dd class="mt-1 text-2xl font-semibold text-indigo-600">${playerData.totalG} / ${totalMatches} (${matchWinRate.toFixed(0)}%)</dd>
+                        </div>
+                         <div class="text-center border-r border-gray-200">
+                            <dt class="text-sm font-medium text-gray-500">Jeux Gagnés</dt>
+                            <dd class="mt-1 text-2xl font-semibold text-indigo-600">${playerData.totalJG}</dd>
+                        </div>
+                         <div class="text-center sm:border-r border-gray-200">
+                            <dt class="text-sm font-medium text-gray-500">Jeux Perdus</dt>
+                            <dd class="mt-1 text-2xl font-semibold text-indigo-600">${playerData.totalJP}</dd>
+                        </div>
+                        <div class="text-center border-t border-gray-200 pt-4 col-span-2 sm:border-t-0 sm:pt-0 sm:col-span-1">
+                            <dt class="text-sm font-medium text-gray-500">Win % (Jeux)</dt>
+                            <dd class="mt-1 text-2xl font-semibold text-indigo-600">${gameWinRate.toFixed(0)}%</dd>
+                        </div>
+                    </dl>
+                </div>
+            `;
+
             playerDetailTableBody.innerHTML = '';
             playerData.tournaments.forEach(tourney => {
                 const totalGames = tourney.jg + tourney.jp;
@@ -626,24 +681,61 @@
             }
             const playersWithStats = Object.values(playersObject).map(p => ({
                 ...p,
-                matchWinRate: (p.totalG + p.totalP > 0) ? (p.totalG / (p.totalG + p.totalP)) : 0
+                matchWinRate: (p.totalG + p.totalP > 0) ? (p.totalG / (p.totalG + p.totalP)) : 0,
+                gameWinRate: (p.totalJG + p.totalJP > 0) ? (p.totalJG / (p.totalJG + p.totalJP)) : 0,
+                tournamentsWon: p.tournaments.filter(t => t.rank === 1).length
             }));
-            const topTournamentWinners = [...playersWithStats].map(p => ({ ...p, tournamentsWon: p.tournaments.filter(t => t.rank === 1).length })).filter(p => p.tournamentsWon > 0).sort((a, b) => b.tournamentsWon - a.tournamentsWon || b.matchWinRate - a.matchWinRate).slice(0, 5);
-            const topMatchWinners = [...playersWithStats].sort((a, b) => b.totalG - a.totalG || b.matchWinRate - a.matchWinRate).slice(0, 5);
+            const topTournamentWinners = [...playersWithStats].filter(p => p.tournamentsWon > 0).sort((a, b) => b.tournamentsWon - a.tournamentsWon || b.gameWinRate - a.gameWinRate).slice(0, 5);
+            const topMatchWinners = [...playersWithStats].sort((a, b) => b.totalG - a.totalG || b.gameWinRate - a.gameWinRate).slice(0, 5);
             const topGameWinners = [...playersWithStats].sort((a, b) => b.totalJG - a.totalJG || b.matchWinRate - a.matchWinRate).slice(0, 5);
             const topMatchWinRate = [...playersWithStats].sort((a, b) => b.matchWinRate - a.matchWinRate || b.totalG - a.totalG).slice(0, 5);
+            
             top5Content.appendChild(createTop5ListHTML('🏆 Top Vainqueurs de Tournoi', topTournamentWinners, p => p.tournamentsWon, 'victoire(s)'));
             top5Content.appendChild(createTop5ListHTML('💪 Top Vainqueurs de Matchs', topMatchWinners, p => p.totalG, 'matchs gagnés'));
             top5Content.appendChild(createTop5ListHTML('🎾 Top Vainqueurs de Jeux', topGameWinners, p => p.totalJG, 'jeux gagnés'));
             top5Content.appendChild(createTop5ListHTML('📈 Top Taux de Victoire (Matchs)', topMatchWinRate, p => `${(p.matchWinRate * 100).toFixed(0)}%`, 'de victoire'));
-            const podiumCounts = {};
-            [...topTournamentWinners, ...topMatchWinners, ...topGameWinners, ...topMatchWinRate].forEach(p => {
-                podiumCounts[p.license] = (podiumCounts[p.license] || 0) + 1;
-            });
-            const podiumContenders = Object.keys(podiumCounts).map(license => ({ player: playersWithStats.find(p => p.license === license), count: podiumCounts[license] })).sort((a, b) => {
-                if (b.count !== a.count) return b.count - a.count;
-                return b.player.matchWinRate - a.player.matchWinRate;
-            }).slice(0, 3);
+            
+            const normalizeKPI = (playerList, kpiKey) => {
+                const scores = new Map();
+                if (playerList.length === 0) return scores;
+                const values = playerList.map(p => p[kpiKey]);
+                const min = Math.min(...values);
+                const max = Math.max(...values);
+                playerList.forEach(player => {
+                    const rawValue = player[kpiKey];
+                    const normScore = (max - min === 0) ? 10 : 10 * (rawValue - min) / (max - min);
+                    scores.set(player.license, normScore);
+                });
+                return scores;
+            };
+
+            const normScores = {
+                tournamentsWon: normalizeKPI(topTournamentWinners, 'tournamentsWon'),
+                totalG: normalizeKPI(topMatchWinners, 'totalG'),
+                totalJG: normalizeKPI(topGameWinners, 'totalJG'),
+                matchWinRate: normalizeKPI(topMatchWinRate, 'matchWinRate')
+            };
+
+            const allContenders = new Set([
+                ...topTournamentWinners.map(p => p.license),
+                ...topMatchWinners.map(p => p.license),
+                ...topGameWinners.map(p => p.license),
+                ...topMatchWinRate.map(p => p.license)
+            ]);
+            
+            const podiumContenders = Array.from(allContenders).map(license => {
+                const player = playersWithStats.find(p => p.license === license);
+                const tScore = normScores.tournamentsWon.get(license) || 0;
+                const mScore = normScores.totalG.get(license) || 0;
+                const gScore = normScores.totalJG.get(license) || 0;
+                const rScore = normScores.matchWinRate.get(license) || 0;
+                
+                const finalScore10 = (tScore * 0.25) + (mScore * 0.25) + (gScore * 0.25) + (rScore * 0.25);
+                const finalScore5 = finalScore10 / 2;
+
+                return { player, finalScore: finalScore5 };
+            }).sort((a, b) => b.finalScore - a.finalScore).slice(0, 3);
+            
             top5Content.appendChild(createPodiumHTML(podiumContenders));
         }
 
@@ -707,7 +799,8 @@
                                 <p class="font-bold text-gray-800">${contender.player.name}</p>
                                 <p class="text-xs text-gray-500">${contender.player.club}</p>
                                 <p class="text-xs text-gray-500">${contender.player.license}</p>
-                                <p class="text-sm mt-1 text-yellow-500 text-lg">${'⭐'.repeat(contender.count)}</p>
+                                <p class="text-yellow-500 text-2xl mt-2">${'⭐'.repeat(Math.round(contender.finalScore))}</p>
+                                <p class="text-sm text-gray-600 font-semibold">${contender.finalScore.toFixed(2)} / 5</p>
                             </div>
                             <div class="podium-rank-base">
                                 <span class="podium-rank">${rank}</span>
@@ -781,7 +874,7 @@
                 const competitivenessScore = kpis.competitiveness.reduce((acc, kpi) => acc + club[`${kpi}_norm`], 0) / kpis.competitiveness.length;
                 const efficiencyScore = kpis.efficiency.reduce((acc, kpi) => acc + club[`${kpi}_norm`], 0) / kpis.efficiency.length;
                 
-                club.finalScore = (participationScore * 0.05) + (competitivenessScore * 0.15) + (efficiencyScore * 0.8);
+                club.finalScore = (participationScore * 0.30) + (competitivenessScore * 0.35) + (efficiencyScore * 0.35);
             });
 
             // Render Global Score Section
@@ -7127,7 +7220,9 @@ const tcmoTournamentId = "CRITERIUM DES LUTINS DE TENNIS CLUB DE MONASTIR (RÉGI
                     },
                     "LUTINS 1ÈRE ANNÉE - POULE B":{"players":[{"name":"KAMMOUN Hedi","club":"ASMJG","license":"25/002455"},{"name":"LENGLIZ Yahia","club":"TCHS","license":"25/002282"},{"name":"ALAYA Mohamed Amine","club":"TCM","license":"25/002694"},{"name":"BEN NAHILA Hamed","club":"TCJ","license":"25/001862"}],"ranking":[{"rank":1,"name":"KAMOUN Hedi","pts":"6","g":"3","p":"0","jg":"12","jp":"1"},{"rank":2,"name":"LENGLIZ Yahia","pts":"5","g":"2","p":"1","jg":"9","jp":"7"},{"rank":3,"name":"ALAYA Mohamed Amine","pts":"4","g":"1","p":"2","jg":"5","jp":"8"},{"rank":4,"name":"BEN NAHILA Hamed","pts":"4","g":"0","p":"3","jg":"2","jp":"12"}]},
                     "LUTINS 1ÈRE ANNÉE - POULE C":{"players":[{"name":"MESSAI Abdelkader","club":"TCHS","license":"25/002281"},{"name":"BAHRI Mahdi","club":"TCSAY","license":"25/002317"},{"name":"BEDOUI Brahim","club":"TCM","license":"25/002696"},{"name":"ABDELHEDI Salim","club":"ASMJG","license":"25/002458"}],"ranking":[{"rank":1,"name":"ABDELHEDI Salim","pts":"6","g":"3","p":"0","jg":"12","jp":"2"},{"rank":2,"name":"MESSAI Abdelkader","pts":"5","g":"2","p":"1","jg":"10","jp":"7"},{"rank":3,"name":"BEDOUI Brahim","pts":"4","g":"1","p":"2","jg":"6","jp":"8"},{"rank":4,"name":"BAHRI Mahdi","pts":"3","g":"0","p":"3","jg":"1","jp":"12"}]},"LUTINS 1ÈRE ANNÉE - POULE D":{"players":[{"name":"BEN FARHAT Nail","club":"TCM","license":"25/002691"},{"name":"MHENNI lyed","club":"TCSAY","license":"25/002392"},{"name":"BOUAFSOUN Haroun","club":"TCJ","license":"25/001864"},{"name":"KOUADA Skander","club":"MTC","license":"25/000587"}],"ranking":[{"rank":1,"name":"KOUADA Skander","pts":"6","g":"3","p":"0","jg":"12","jp":"1"},{"rank":2,"name":"BEN FARHAT Nail","pts":"5","g":"2","p":"1","jg":"8","jp":"4"},{"rank":3,"name":"MHENNI IYED","pts":"4","g":"1","p":"2","jg":"5","jp":"10"},{"rank":4,"name":"BOUAFSOUN Haroun","pts":"3","g":"0","p":"3","jg":"2","jp":"12"}]},"LUTINES 1ÈRE ANNÉE - POULE A":{"players":[{"name":"BEN NASR Aicha","club":"MTC","license":"25/000585"},{"name":"SALLEMI Baya","club":"CMTCH","license":"25/001787"},{"name":"THABET Alia","club":"TCHS","license":"25/002284"},{"name":"DAFAA Rima","club":"TCM","license":"25/002698"}],"ranking":[{"rank":1,"name":"BEN NASR Aicha","pts":"6","g":"3","p":"0","jg":"12","jp":"0"},{"rank":2,"name":"THABET Alia","pts":"5","g":"2","p":"1","jg":"8","jp":"5"},{"rank":3,"name":"SALLEMI Baya","pts":"4","g":"1","p":"2","jg":"4","jp":"10"},{"rank":4,"name":"DAFAA Rima","pts":"3","g":"0","p":"3","jg":"2","jp":"12"}]},"LUTINES 1ÈRE ANNÉE - POULE B":{"players":[{"name":"NAKBI Meriem","club":"TCM","license":"25/002692"},{"name":"TRAD Line","club":"MTC","license":"25/002298"},{"name":"CHAMLI Ghayda","club":"TCS","license":"25/000935"},{"name":"GHOUILA Nadine","club":"TCHS","license":"25/002280"}],"ranking":[{"rank":1,"name":"CHAMLI Ghayda","pts":"5","g":"2","p":"1","jg":"10","jp":"6"},{"rank":1,"name":"NAKBI Meriem","pts":"5","g":"2","p":"1","jg":"10","jp":"6"},{"rank":1,"name":"GHOUILA Nadine","pts":"5","g":"2","p":"1","jg":"10","jp":"6"},{"rank":4,"name":"TRAD Line","pts":"0","g":"0","p":"3","jg":"0","jp":"12"}]},"LUTINES 1ÈRE ANNÉE - POULE C":{"players":[{"name":"BRAHIM Joud","club":"TCM","license":"25/002695"},{"name":"NAJJAR Kenza","club":"TCHS","license":"25/002657"},{"name":"SGHARI Rahma","club":"TCM","license":"25/002693"},{"name":"AJROUD Bissene","club":"MTC","license":"25/002443"}],"ranking":[{"rank":1,"name":"AJROUD Bissene","pts":"6","g":"3","p":"0","jg":"12","jp":"0"},{"rank":2,"name":"SGHARI Rahma","pts":"5","g":"2","p":"1","jg":"8","jp":"6"},{"rank":3,"name":"NAJJAR Kenza","pts":"4","g":"1","p":"2","jg":"4","jp":"10"},{"rank":4,"name":"BRAHIM Joud","pts":"3","g":"0","p":"3","jg":"4","jp":"12"}]},"LUTINS 2ÈME ANNÉE - POULE A":{"players":[{"name":"AQUINA Houssem","club":"TCHS","license":"25/001565"},{"name":"AMRI Louay","club":"TCMO","license":"25/000814"},{"name":"EL EUCH Aziz","club":"ASMJG","license":"25/002022"},{"name":"SGHARI Yousef","club":"TCM","license":"25/000710"}],"ranking":[{"rank":1,"name":"AQUINA Yousef","pts":"N/A","g":"N/A","p":"N/A","jg":"12","jp":"3"},{"rank":2,"name":"AMRI Louay","pts":"N/A","g":"N/A","p":"N/A","jg":"10","jp":"5"},{"rank":3,"name":"SGHARI Yousef","pts":"N/A","g":"N/A","p":"N/A","jg":"5","jp":"10"},{"rank":4,"name":"EL EUCH Aziz","pts":"N/A","g":"0","p":"N/A","jg":"2","jp":"12"}]},"LUTINS 2ÈME ANNÉE - POULE B":{"players":[{"name":"KHILA Khalil Dhafer","club":"TCM","license":"25/000719"},{"name":"CHAFFAI Youssef","club":"ASMJG","license":"25/002021"},{"name":"AYADI Skander","club":"TCSF","license":"25/002255"},{"name":"MRAIDHA Yahia","club":"TCMO","license":"25/000753"}],"ranking":[{"rank":1,"name":"MRAIDHA Yahia","pts":"6","g":"3","p":"0","jg":"12","jp":"2"},{"rank":2,"name":"CHAFFAI Youssef","pts":"5","g":"2","p":"1","jg":"8","jp":"5"},{"rank":3,"name":"AYADI Skander","pts":"4","g":"1","p":"2","jg":"7","jp":"8"},{"rank":4,"name":"KHILA Khalil Dhafer","pts":"0","g":"0","p":"3","jg":"0","jp":"12"}]},"LUTINS 2ÈME ANNÉE - POULE C":{"players":[{"name":"BACHA Mohamed Elyes","club":"TCMO","license":"25/000797"},{"name":"BEN ABDESSLEM Haroun","club":"TCM","license":"25/000743"},{"name":"NEIFAR Omar","club":"CMTCH","license":"25/001779"},{"name":"BOUHLEL Mohamed Idriss","club":"TCHS","license":"25/001569"}],"ranking":[{"rank":1,"name":"NEIFAR Omar","pts":"6","g":"3","p":"0","jg":"12","jp":"6"},{"rank":2,"name":"BOUHLEL Mohamed Idriss","pts":"5","g":"2","p":"1","jg":"8","jp":"6"},{"rank":3,"name":"BACHA Mohamed Elyes","pts":"4","g":"1","p":"2","jg":"7","jp":"9"},{"rank":4,"name":"BEN ABDESSLEM Haroun","pts":"3","g":"0","p":"3","jg":"5","jp":"12"}]},"LUTINS 2ÈME ANNÉE - POULE D":{"players":[{"name":"BEN ARAB Mohamed","club":"CMTCH","license":"25/001769"},{"name":"JERIBI Mohamed Arsen","club":"TCM","license":"25/000747"},{"name":"GUELLIM Youssef","club":"TCMO","license":"25/000751"},{"name":"BEJI Habib","club":"TCK","license":"25/001452"}],"ranking":[{"rank":1,"name":"JERIBI Mohamed Arsen","pts":"6","g":"3","p":"0","jg":"12","jp":"2"},{"rank":2,"name":"GUELLIM Youssef","pts":"5","g":"1","p":"2","jg":"10","jp":"6"},{"rank":3,"name":"BEJI Habib","pts":"4","g":"1","p":"2","jg":"6","jp":"8"},{"rank":4,"name":"BEN ARAB Mohamed","pts":"3","g":"0","p":"3","jg":"0","jp":"12"}]},"LUTINS 2ÈME ANNÉE - POULE E":{"players":[{"name":"BEN ARFI Bayrem","club":"TCMO","license":"25/000815"},{"name":"AROUS Taym","club":"TCHS","license":"25/001566"},{"name":"JMAL Aziz","club":"CMTCH","license":"25/001774"},{"name":"LAOUANI Beyram","club":"TCSAY","license":"25/001931"}],"ranking":[{"rank":1,"name":"LAOUANI Beyram","pts":"6","g":"3","p":"0","jg":"12","jp":"3"},{"rank":2,"name":"BEN ARFI Bayrem","pts":"5","g":"2","p":"1","jg":"9","jp":"5"},{"rank":3,"name":"JMAL Aziz","pts":"4","g":"1","p":"2","jg":"8","jp":"9"},{"rank":4,"name":"AROUS Taym","pts":"3","g":"0","p":"3","jg":"3","jp":"12"}]},"LUTINS 2ÈME ANNÉE - POULE F":{"players":[{"name":"BENZARTI Yassine","club":"TCMO","license":"25/000750"},{"name":"BOUKADIDA Salim","club":"TCS","license":"25/000931"},{"name":"MEJBRI Mohamed Chedly","club":"TCK","license":"25/001453"},{"name":"MDEMEGH Hamza","club":"TCMO","license":"25/000752"}],"ranking":[{"rank":1,"name":"MDEMEGH Hamza","pts":"6","g":"3","p":"0","jg":"12","jp":"2"},{"rank":2,"name":"MEJBRI Mohamed Chedly","pts":"5","g":"2","p":"1","jg":"10","jp":"5"},{"rank":3,"name":"BENZARTI Yassine","pts":"4","g":"1","p":"2","jg":"4","jp":"10"},{"rank":4,"name":"BOUKADIDA Salim","pts":"3","g":"0","p":"3","jg":"3","jp":"12"}]},"LUTINS 2ÈME ANNÉE - POULE G":{"players":[{"name":"ZAHMOUL Jed","club":"TCHS","license":"25/001576"},{"name":"SRIHA Mouayed","club":"TCMO","license":"25/000754"},{"name":"HAMZA Badis","club":"TCM","license":"25/000718"},{"name":"ESSOUDI Mohamed Selim","club":"TCJ","license":"25/001863"}],"ranking":[{"rank":1,"name":"ZAHMOUL Jed","pts":"6","g":"3","p":"0","jg":"12","jp":"2"},{"rank":2,"name":"SRIHA Mouayed","pts":"5","g":"2","p":"1","jg":"8","jp":"6"},{"rank":3,"name":"HAMZA Badis","pts":"4","g":"1","p":"2","jg":"8","jp":"8"},{"rank":4,"name":"ESSOUDI Mohamed Selim","pts":"3","g":"0","p":"3","jg":"0","jp":"12"}]},"LUTINES 2ÈME ANNÉE - POULE A":{"players":[{"name":"ZOUAGHI Hiba","club":"TCS","license":"25/001692"},{"name":"CHAKROUN Jana","club":"CMTCH","license":"25/000339"},{"name":"SLAMA Salma","club":"TCK","license":"25/002659"},{"name":"SLIM Salma","club":"TCSAY","license":"25/000723"},{"name":"ALOUI Sara","club":"ASMJG","license":"25/000755"}],"ranking":[{"rank":1,"name":"SLAMA Salma","pts":"8","g":"4","p":"0","jg":"16","jp":"1"},{"rank":2,"name":"ALOUI Sara","pts":"7","g":"3","p":"1","jg":"13","jp":"9"},{"rank":3,"name":"CHAKROUN Jana","pts":"6","g":"2","p":"2","jg":"11","jp":"12"},{"rank":4,"name":"ZOUAGHI Hiba","pts":"5","g":"1","p":"3","jg":"8","jp":"12"},{"rank":5,"name":"SLIM Salma","pts":"4","g":"0","p":"4","jg":"2","jp":"16"}]},"LUTINES 2ÈME ANNÉE - POULE B":{"players":[{"name":"BEN ARAB Khadija","club":"ASMJG","license":"25/000817"},{"name":"BOUHLEL Zaineb","club":"MTC","license":"25/001420"},{"name":"BEN BELGACEM Dorra","club":"TCM","license":"25/001579"},{"name":"KHAWAM Anais","club":"TCHS","license":"25/001935"},{"name":"MSAKNI Mariem","club":"TCK","license":"25/001783"}],"ranking":[{"rank":1,"name":"KHAWAM Anais","pts":"8","g":"4","p":"0","jg":"16","jp":"2"},{"rank":2,"name":"MSAKNI Mariem","pts":"7","g":"3","p":"1","jg":"13","jp":"6"},{"rank":3,"name":"BOUHLEL Zaineb","pts":"5","g":"1","p":"3","jg":"6","jp":"12"},{"rank":4,"name":"BEN ARAB Khadija","pts":"5","g":"1","p":"3","jg":"6","jp":"13"},{"rank":5,"name":"BEN BELGACEM Dorra","pts":"5","g":"1","p":"3","jg":"5","jp":"14"}]},"LUTINES 2ÈME ANNÉE - POULE C":{"players":[{"name":"JERFEL Rayhane","club":"TCK","license":"25/001785"},{"name":"GARES Ghalia","club":"TCHS","license":"25/001933"},{"name":"ABDOU Ritta","club":"TCMO","license":"25/001581"},{"name":"ABID Baya","club":"CMTCH","license":"25/000338"},{"name":"AYED Yasmine","club":"TCSAY","license":"25/000340"}],"ranking":[{"rank":1,"name":"JERFEL Rayhane","pts":"7","g":"3","p":"1","jg":"15","jp":"6"},{"rank":2,"name":"GARES Ghalia","pts":"7","g":"3","p":"1","jg":"13","jp":"11"},{"rank":3,"name":"AYED Yasmine","pts":"6","g":"2","p":"2","jg":"12","jp":"10"},{"rank":4,"name":"ABDOU Ritta","pts":"6","g":"2","p":"2","jg":"10","jp":"13"},{"rank":5,"name":"ABID Baya","pts":"4","g":"0","p":"4","jg":"6","jp":"16"}]},"LUTINES 2ÈME ANNÉE - POULE D":{"players":[{"name":"JEDLI Wissal","club":"TCSAY","license":"25/000722"},{"name":"WALI Lina","club":"TCSF","license":"25/000724"},{"name":"BEN AMAR Chahd","club":"ASMJG","license":"25/000757"},{"name":"HIZEM Zeineb","club":"TCMO","license":"25/001782"}],"ranking":[{"rank":1,"name":"WALI Lina","pts":"6","g":"3","p":"0","jg":"12","jp":"3"},{"rank":2,"name":"HIZEM Zeineb","pts":"5","g":"2","p":"1","jg":"8","jp":"8"},{"rank":3,"name":"BEN AMAR Chahd","pts":"4","g":"1","p":"2","jg":"8","jp":"8"},{"rank":4,"name":"JEDLI Wissal","pts":"3","g":"3","p":"0","jg":"3","jp":"12"}]},"LUTINES 2ÈME ANNÉE - POULE E":{"players":[{"name":"AL AHMADI Lyn","club":"TCM","license":"25/001421"},{"name":"BOUKOTTAYA Zain","club":"TCK","license":"25/002005"},{"name":"MAATOUK Dorra","club":"TCMO","license":"25/001580"},{"name":"BEL HADJ AMOR Molka","club":"TCSAY","license":"25/000576"}],"ranking":[{"rank":1,"name":"BOUKOTTAYA Zain","pts":"6","g":"3","p":"0","jg":"12","jp":"3"},{"rank":2,"name":"BEL HADJ AMOR Molka","pts":"4","g":"1","p":"2","jg":"8","jp":"9"},{"rank":3,"name":"MAATOUK Dorra","pts":"4","g":"1","p":"2","jg":"9","jp":"11"},{"rank":4,"name":"AL AHMADI Lyn","pts":"4","g":"1","p":"2","jg":"6","jp":"11"}]},"LUTINES 2ÈME ANNÉE - POULE F":{"players":[{"name":"JARRAYA Khadija","club":"ASMJG","license":"25/000939"},{"name":"BEN WANNES Celine","club":"TCHS","license":"25/001932"},{"name":"BEN HALIMA Lilia","club":"TCK","license":"25/001422"},{"name":"JAZIRI Sarra","club":"TCM","license":"25/001578"}],"ranking":[{"rank":1,"name":"JAZIRI Sarra","pts":"5","g":"2","p":"1","jg":"10","jp":"6"},{"rank":2,"name":"BEN WANNES Celine","pts":"5","g":"2","p":"1","jg":"8","jp":"7"},{"rank":3,"name":"BEN HALIMA Lilia","pts":"5","g":"2","p":"1","jg":"9","jp":"8"},{"rank":4,"name":"JARRAYA Khadija","pts":"3","g":"0","p":"3","jg":"6","jp":"12"}]},"LUTINES 2ÈME ANNÉE - POULE G":{"players":[{"name":"TORJMENE Celine","club":"TCMO","license":"25/001418"},{"name":"JRAD Zina Celine","club":"TCHS","license":"25/001934"},{"name":"ABDELHEDI Khadija","club":"CMTCH","license":"25/000337"},{"name":"HAMMEDI Mila","club":"TCK","license":"25/001419"}],"ranking":[{"rank":1,"name":"ABDELHEDI Khadija","pts":"6","g":"3","p":"0","jg":"12","jp":"5"},{"rank":2,"name":"JRAD Zina Celine","pts":"5","g":"2","p":"1","jg":"9","jp":"6"},{"rank":3,"name":"HAMMEDI Mila","pts":"4","g":"1","p":"2","jg":"8","jp":"8"},{"rank":4,"name":"TORJMENE Celine","pts":"3","g":"0","p":"3","jg":"2","jp":"12"}]}}};
-                
+                    const tcmgTournamentId = "Critérium des Lutins de Tennis Club de Mégrine (Régional) - 18-19 Janvier 2025";
+                allTournaments[tcmgTournamentId] = { id: tcmgTournamentId, data: { "Lutins Ière Année - Poule A":{players:[{name:"CHENNAOUI Skander",club:"TCMG",license:"25/002711"},{name:"BEN SASSI Haroun",club:"TCSOF",license:"25/000999"},{name:"QUESLATI Amenallah",club:"TCT",license:"25/002102"},{name:"MBAREK Selim",club:"TN",license:"25/002171"}],ranking:[{rank:1,name:"QUESLATI Amenallah",pts:"6",g:"3",p:"0",jg:"12",jp:"0"},{rank:2,name:"BEN SASSI Haroun",pts:"5",g:"2",p:"1",jg:"8",jp:"7"},{rank:3,name:"MBAREK Selim",pts:"4",g:"1",p:"2",jg:"6",jp:"9"},{rank:4,name:"CHENNAOUI Skander",pts:"3",g:"0",p:"3",jg:"2",jp:"12"}]}, "Lutins Ière Année - Poule B":{players:[{name:"MKAOUAR Ahmed Nejib",club:"TCT",license:"25/002260"},{name:"BEN SAID Haroun",club:"ASV",license:"25/002060"},{name:"CHTIOUI Ouaies",club:"TN",license:"25/002503"},{name:"BENNOUR DIT SAHLI Amine",club:"TCH",license:"25/002596"}],ranking:[{rank:1,name:"BEN SAID Haroun",pts:"5",g:"2",p:"1",jg:"10",jp:"7"},{rank:2,name:"CHTIOUI Ouaies",pts:"5",g:"2",p:"1",jg:"9",jp:"8"},{rank:3,name:"MKAOUAR Ahmed Nejib",pts:"3",g:"1",p:"2",jg:"9",jp:"10"},{rank:4,name:"BENNOUR DIT SAHLI Amine",pts:"3",g:"1",p:"2",jg:"7",jp:"10"}]}, "Lutins Ière Année - Poule C":{players:[{name:"GHARIANI Fedi",club:"TN",license:"25/000503"},{name:"ZARROUK Malek",club:"TCH",license:"25/001641"},{name:"MHEDHBI lyed",club:"TCMG",license:"25/002519"},{name:"DHOUIBI Yassine",club:"TCT",license:"25/002186"}],ranking:[{rank:1,name:"DHOUIBI Yassine",pts:"6",g:"3",p:"0",jg:"12",jp:"1"},{rank:2,name:"ZARROUK Malek",pts:"5",g:"2",p:"1",jg:"8",jp:"4"},{rank:3,name:"GHARIANI Fedi",pts:"4",g:"1",p:"2",jg:"5",jp:"9"},{rank:4,name:"MHEDHBI Iyed",pts:"3",g:"0",p:"3",jg:"0",jp:"12"}]}, "Lutins Ière Année - Poule D":{players:[{name:"BOUZOUITA Youssef",club:"TCT",license:"25/002389"},{name:"BOUAFIF Zayn",club:"TCKL",license:"25/002479"},{name:"JEBAHI Jasser",club:"TCMG",license:"25/002708"},{name:"BELLIL Ismail",club:"TCC",license:"25/000002"}],ranking:[{rank:1,name:"BELLIL Ismail",pts:"6",g:"3",p:"0",jg:"12",jp:"3"},{rank:2,name:"BOUAFIF Zayn",pts:"5",g:"2",p:"1",jg:"10",jp:"4"},{rank:3,name:"JEBAHI Jasser",pts:"4",g:"1",p:"2",jg:"5",jp:"9"},{rank:4,name:"BOUZOUITA Youssef",pts:"3",g:"0",p:"3",jg:"1",jp:"12"}]}, "Lutines Ière Année - Poule A":{players:[{name:"JALLALI Mayar",club:"TCMG",license:"25/002707"},{name:"BEN SLIMANE Salima",club:"TCKL",license:"25/002478"},{name:"HEDIDAR Lynda",club:"TCT",license:"25/002263"},{name:"KTATA Emna",club:"TCT",license:"25/002094"},{name:"MADIOUNI Maram",club:"ASM",license:"25/000296"}],ranking:[{rank:1,name:"MADIOUNI Maram",pts:"8",g:"4",p:"0",jg:"16",jp:"1"},{rank:2,name:"HEDIDAR Lynda",pts:"7",g:"3",p:"1",jg:"13",jp:"4"},{rank:3,name:"BEN SLIMANE Salima",pts:"6",g:"2",p:"2",jg:"8",jp:"9"},{rank:4,name:"KTATA Emna",pts:"5",g:"1",p:"3",jg:"5",jp:"12"},{rank:5,name:"JALLALI Mayar",pts:"4",g:"0",p:"4",jg:"0",jp:"16"}]}, "Lutines Ière Année - Poule B":{players:[{name:"REFAI Miral",club:"TCT",license:"25/002095"},{name:"KHLIFI Eya",club:"TCMG",license:"25/001405"},{name:"KAANICHE Sarra",club:"TCT",license:"25/002586"},{name:"BEDOUI Roeya",club:"TCKL",license:"25/002477"},{name:"BEN DHIFALLAH Assia",club:"TCT",license:"25/002262"}],ranking:[{rank:1,name:"REFAI Miral",pts:"7",g:"3",p:"1",jg:"15",jp:"5"},{rank:2,name:"BEDOUI Roeya",pts:"7",g:"3",p:"1",jg:"12",jp:"8"},{rank:3,name:"KAANICHE Sarra",pts:"6",g:"2",p:"2",jg:"10",jp:"8"},{rank:4,name:"BEN DHIFALLAH Assia",pts:"6",g:"2",p:"2",jg:"8",jp:"8"},{rank:5,name:"KHLIFI Eya",pts:"4",g:"0",p:"4",jg:"0",jp:"16"}]}, "Lutins 2ème Année - Poule A":{players:[{name:"BENNOUR Jed",club:"ASV",license:"25/002061"},{name:"MEJRI AI Eskander",club:"TCT",license:"25/001194"},{name:"MEJRI Ahmed",club:"TCC",license:"25/000007"},{name:"GARBOUJ Arselene",club:"TN",license:"25/000493"},{name:"ESSAAFI Yahia",club:"TCT",license:"25/001189"}],ranking:[{rank:1,name:"MEJRI Ahmed",pts:"8",g:"4",p:"0",jg:"16",jp:"3"},{rank:2,name:"GARBOUJ Arselene",pts:"7",g:"3",p:"1",jg:"13",jp:"4"},{rank:3,name:"BENNOUR Jed",pts:"6",g:"2",p:"2",jg:"8",jp:"8"},{rank:4,name:"ESSAAFI Yahia",pts:"5",g:"1",p:"3",jg:"6",jp:"12"},{rank:5,name:"MEJRI AI Eskander",pts:"4",g:"0",p:"4",jg:"0",jp:"16"}]}, "Lutins 2ème Année - Poule B":{players:[{name:"BELHAJ Ali",club:"TCT",license:"25/001188"},{name:"TARCHOUN Hedi",club:"ASV",license:"25/002067"},{name:"BELHADJ Sadin",club:"TCC",license:"25/000001"},{name:"ZRIBI Hedi",club:"ASM",license:"25/000294"},{name:"GRIBAA Skander",club:"TCT",license:"25/001190"}],ranking:[{rank:1,name:"ZRIBI Hedi",pts:"8",g:"4",p:"0",jg:"16",jp:"0"},{rank:2,name:"BELHAJ Ali",pts:"7",g:"3",p:"1",jg:"12",jp:"5"},{rank:3,name:"TARCHOUN Hedi",pts:"6",g:"2",p:"2",jg:"9",jp:"9"},{rank:4,name:"GRIBAA Skander",pts:"5",g:"1",p:"3",jg:"5",jp:"12"},{rank:5,name:"BELHADJ Sadin",pts:"4",g:"0",p:"4",jg:"0",jp:"16"}]}, "Lutins 2ème Année - Poule C":{players:[{name:"EL HAMDI Seifallah",club:"ASV",license:"25/002063"},{name:"NJILI Elyess",club:"TCMG",license:"25/002709"},{name:"HRAM Mehdi",club:"TCC",license:"25/000006"},{name:"RAZGALLAH Yahia",club:"TCT",license:"25/002106"}],ranking:[{rank:1,name:"RAZGALLAH Yahia",pts:"6",g:"3",p:"0",jg:"12",jp:"4"},{rank:2,name:"HRAM Mehdi",pts:"5",g:"2",p:"1",jg:"11",jp:"4"},{rank:3,name:"EL HAMDI Seifallah",pts:"4",g:"1",p:"2",jg:"5",jp:"9"},{rank:4,name:"NJILI Elyess",pts:"3",g:"0",p:"3",jg:"0",jp:"12"}]}, "Lutins 2ème Année - Poule D":{players:[{name:"JARANDI Khalil",club:"TCT",license:"25/002190"},{name:"BEN ROMDHANE Malek",club:"TCC",license:"25/000003"},{name:"MBAZAIA Elyes",club:"ASV",license:"25/002065"},{name:"YOUSSEFI Selim",club:"TCT",license:"25/001197"}],ranking:[{rank:1,name:"YOUSSEFI Selim",pts:"5",g:"2",p:"1",jg:"11",jp:"7"},{rank:2,name:"JARANDI Khalil",pts:"5",g:"2",p:"1",jg:"10",jp:"6"},{rank:3,name:"MBAZAIA Elyes",pts:"5",g:"2",p:"1",jg:"10",jp:"8"},{rank:4,name:"BEN ROMDHANE Malek",pts:"3",g:"0",p:"3",jg:"2",jp:"12"}]}, "Lutins 2ème Année - Poule E":{players:[{name:"ANNABI Mehdi",club:"TCB",license:"25/000595"},{name:"EL HAMZI Chady",club:"TCC",license:"25/000004"},{name:"CHAIBI Mehdi",club:"ASV",license:"25/002062"},{name:"KACEM Fares",club:"TCT",license:"25/001192"}],ranking:[{rank:1,name:"EL HAMZI Chady",pts:"6",g:"3",p:"0",jg:"12",jp:"2"},{rank:2,name:"CHAIBI Mehdi",pts:"5",g:"2",p:"1",jg:"9",jp:"7"},{rank:3,name:"ANNABI Mehdi",pts:"4",g:"1",p:"2",jg:"6",jp:"10"},{rank:4,name:"KACEM Fares",pts:"3",g:"0",p:"3",jg:"4",jp:"12"}]}, "Lutins 2ème Année - Poule F":{players:[{name:"TANNOUBI Bayrem.",club:"TCT",license:"25/001195"},{name:"KAMMOUN Mahdi",club:"TCSOF",license:"25/001000"},{name:"KEBAIER Iskander",club:"TCB",license:"25/000599"},{name:"FEKI Yassine",club:"ASV",license:"25/002064"}],ranking:[{rank:1,name:"TANNOUBI Bayrem.",pts:"6",g:"3",p:"0",jg:"12",jp:"1"},{rank:2,name:"FEKI Yassine",pts:"5",g:"2",p:"1",jg:"9",jp:"7"},{rank:3,name:"KAMMOUN Mahdi",pts:"4",g:"1",p:"2",jg:"5",jp:"11"},{rank:4,name:"KEBAIER Iskander",pts:"3",g:"0",p:"3",jg:"5",jp:"12"}]}, "Lutins 2ème Année - Poule G":{players:[{name:"HAJ FRAJ Yahya",club:"TCT",license:"25/002188"},{name:"SELLAMI Yassine",club:"ASV",license:"25/002066"},{name:"LAHMADI Mohamed",club:"TCT",license:"25/002100"},{name:"KADDOUR Youssef",club:"TCH",license:"25/001637"}],ranking:[{rank:1,name:"KADDOUR Youssef",pts:"6",g:"3",p:"0",jg:"12",jp:"3"},{rank:2,name:"SELLAMI Yassine",pts:"5",g:"2",p:"1",jg:"11",jp:"9"},{rank:3,name:"LAHMADI Mohamed",pts:"4",g:"1",p:"2",jg:"7",jp:"10"},{rank:4,name:"HAJ FRAJ Yahya",pts:"3",g:"0",p:"3",jg:"4",jp:"12"}]}, "Lutines 2ème Année - Poule A":{players:[{name:"GHARBI Julia",club:"ASV",license:"25/000434"},{name:"HNAIEN Miral",club:"TCMG",license:"25/001377"},{name:"MAMI Sandra",club:"TCT",license:"25/001204"},{name:"TASKUN Meryem Sophia",club:"TCKL",license:"25/000657"},{name:"BOUKHRIS Nadine",club:"TCT",license:"25/001156"}],ranking:[{rank:1,name:"MAMI Sandra",pts:"8",g:"4",p:"0",jg:"16",jp:"1"},{rank:2,name:"BOUKHRIS Nadine",pts:"6",g:"2",p:"2",jg:"11",jp:"12"},{rank:3,name:"GHARBI Julia",pts:"6",g:"2",p:"2",jg:"11",jp:"13"},{rank:4,name:"TASKUN Meryem Sophia",pts:"5",g:"1",p:"3",jg:"10",jp:"14"},{rank:5,name:"HNAIEN Miral",pts:"5",g:"1",p:"3",jg:"7",jp:"15"}]}, "Lutines 2ème Année - Poule B":{players:[{name:"BOUGHANMI Yasmine",club:"TCT",license:"25/001200"},{name:"EL BIR Sarra",club:"TN",license:"25/000495"},{name:"HAQUETI Mariem",club:"TCB",license:"25/000601"},{name:"QUESLATI Zeineb",club:"TCT",license:"25/002104"},{name:"SELLAMI Yasmine",club:"ASV",license:"25/002069"}],ranking:[{rank:1,name:"EL BIR Sarra",pts:"8",g:"4",p:"0",jg:"16",jp:"4"},{rank:2,name:"QUESLATI Zeineb",pts:"7",g:"3",p:"1",jg:"13",jp:"6"},{rank:3,name:"HAQUETI Mariem",pts:"6",g:"2",p:"2",jg:"10",jp:"8"},{rank:4,name:"BOUGHANMI Yasmine",pts:"5",g:"1",p:"3",jg:"7",jp:"12"},{rank:5,name:"SELLAMI Yasmine",pts:"4",g:"0",p:"4",jg:"0",jp:"16"}]}, "Lutines 2ème Année - Poule C":{players:[{name:"HAOUARI Maya",club:"TCKL",license:"25/002264"},{name:"SIALA Souad Zonio",club:"TCT",license:"25/001205"},{name:"FEKI Yasmine",club:"ASV",license:"25/000381"},{name:"SAINI Joud",club:"TCMG",license:"25/001378"},{name:"TLILI Alia",club:"TCT",license:"25/001206"}],ranking:[{rank:1,name:"HAOUARI Maya",pts:"8",g:"4",p:"0",jg:"16",jp:"5"},{rank:2,name:"SIALA Souad Zonio",pts:"7",g:"3",p:"1",jg:"15",jp:"4"},{rank:3,name:"TLILI Alia",pts:"6",g:"2",p:"2",jg:"10",jp:"10"},{rank:4,name:"SAINI Joud",pts:"5",g:"1",p:"3",jg:"4",jp:"13"},{rank:5,name:"FEKI Yasmine",pts:"4",g:"0",p:"4",jg:"3",jp:"16"}]}, "Lutines 2ème Année - Poule D":{players:[{name:"BOUABDALLAH Lina",club:"ASV",license:"25/000380"},{name:"KHOUJA Farah",club:"TCKL",license:"25/002265"},{name:"BAROUNI Lydia",club:"TCT",license:"25/001198"},{name:"MAGROUN Lilia",club:"TCSOF",license:"25/000990"}],ranking:[{rank:1,name:"BAROUNI Lydia",pts:"6",g:"3",p:"0",jg:"12",jp:"2"},{rank:2,name:"KHOUJA Farah",pts:"5",g:"2",p:"1",jg:"10",jp:"7"},{rank:3,name:"BOUABDALLAH Lina",pts:"4",g:"1",p:"2",jg:"7",jp:"8"},{rank:4,name:"MAGROUN Lilia",pts:"3",g:"0",p:"3",jg:"0",jp:"12"}]}, "Lutines 2ème Année - Poule E":{players:[{name:"BOUDERBALA Line",club:"TCMG",license:"25/001376"},{name:"BEN ARBI Manessa",club:"TCB",license:"25/000600"},{name:"LAJNEF Mayla",club:"TCKL",license:"25/002266"},{name:"EL AKKAD Julia",club:"TCT",license:"25/001202"}],ranking:[{rank:1,name:"LAJNEF Mayla",pts:"6",g:"3",p:"0",jg:"12",jp:"3"},{rank:2,name:"EL AKKAD Julia",pts:"5",g:"2",p:"1",jg:"9",jp:"10"},{rank:3,name:"BOUDERBALA Line",pts:"4",g:"1",p:"2",jg:"8",jp:"9"},{rank:4,name:"BEN ARBI Manessa",pts:"3",g:"0",p:"3",jg:"5",jp:"12"}]} } };
+                  
             }
             
             populateInitialData();
