@@ -101,109 +101,156 @@
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
-
-    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
-        <header class="text-center mb-8">
-            <h1 class="text-3xl sm:text-4xl font-bold text-indigo-600">Analyseur de Résultats de Tennis Junior</h1>
-            <p class="mt-2 text-md text-gray-600">Analysez les performances par tournoi ou pour toute la saison.</p>
-        </header>
-
-        <main>
-            <!-- View Toggle -->
-            <div id="main-nav" class="mb-6 flex justify-center space-x-2">
-                <button id="pouleViewBtn" class="view-button font-bold py-2 px-6 rounded-lg transition duration-300">Vue par Poule</button>
-                <button id="cumulativeViewBtn" class="view-button font-bold py-2 px-6 rounded-lg transition duration-300">Vue Cumulative</button>
-                <button id="top5ViewBtn" class="view-button font-bold py-2 px-6 rounded-lg transition duration-300">Top 5</button>
-            </div>
-
-            <!-- Poule View Section -->
-            <div id="pouleView">
-                 <div class="bg-white p-4 rounded-lg shadow-md mb-8">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                         <div>
-                            <label for="tournamentSelector" class="font-semibold text-gray-700">Tournoi :</label>
-                            <select id="tournamentSelector" class="block w-full mt-1 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></select>
-                         </div>
-                         <div>
-                            <label for="pouleSelector" class="font-semibold text-gray-700">Poule :</label>
-                            <select id="pouleSelector" class="block w-full mt-1 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></select>
-                         </div>
-                    </div>
+    <!-- Login Overlay -->
+    <div id="login-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-sm">
+            <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Connexion</h2>
+            <form id="login-form">
+                <div class="mb-4">
+                    <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Utilisateur</label>
+                    <input type="text" id="username" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" required>
                 </div>
-                <div id="playerDisplay" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
-                <div id="initialMessagePoule" class="text-center py-16"><p class="text-gray-500 text-lg">Veuillez sélectionner un tournoi et une poule pour voir les résultats.</p></div>
-            </div>
+                <div class="mb-6">
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
+                    <input type="password" id="password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" required>
+                </div>
+                <p id="error-message" class="text-red-500 text-sm text-center mb-4 hidden"></p>
+                <button type="submit" id="login-btn" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300">
+                    Se connecter
+                </button>
+            </form>
+        </div>
+    </div>
 
-            <!-- Cumulative View Section -->
-            <div id="cumulativeView" class="hidden">
-                 <div class="bg-white p-4 rounded-lg shadow-md overflow-x-auto">
-                    <h2 class="text-2xl font-bold text-center mb-4 text-gray-700">Résultats Cumulés de la Saison</h2>
-                    <div id="cumulativeCategoryTabsContainer" class="border-b border-gray-200 mb-4">
-                        <nav class="-mb-px flex space-x-4" aria-label="Tabs">
-                           <!-- Category tabs will be populated here -->
-                        </nav>
-                    </div>
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rang</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joueur/Joueuse</th>
-                                <th scope="col" class="sortable-header px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-sort-by="totalG">M G<span class="sort-icon"></span></th>
-                                <th scope="col" class="sortable-header px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-sort-by="totalP">M P<span class="sort-icon"></span></th>
-                                <th scope="col" class="sortable-header px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-sort-by="totalJG">J G<span class="sort-icon"></span></th>
-                                <th scope="col" class="sortable-header px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-sort-by="totalJP">J P<span class="sort-icon"></span></th>
-                                <th scope="col" class="sortable-header px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-sort-by="winPercentage">Win % (Jeux)<span class="sort-icon"></span></th>
-                            </tr>
-                        </thead>
-                        <tbody id="cumulativeTableBody" class="bg-white divide-y divide-gray-200"></tbody>
-                    </table>
-                 </div>
-            </div>
-            
-            <!-- Top 5 View Section -->
-            <div id="top5View" class="hidden">
-                 <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
-                    <h2 class="text-2xl font-bold text-center mb-4 text-gray-700">Top 5 de la Saison</h2>
-                    <div id="top5CategoryTabsContainer" class="border-b border-gray-200 mb-6">
-                        <nav class="-mb-px flex space-x-4" aria-label="Tabs">
-                           <!-- Top 5 Category tabs will be populated here -->
-                        </nav>
-                    </div>
-                    <div id="top5Content" class="space-y-10">
-                        <!-- Top 5 content will be rendered here by JS -->
-                    </div>
-                 </div>
-            </div>
+    <!-- Main App Container (hidden by default) -->
+    <div id="app-container" class="hidden">
+        <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+            <header class="text-center mb-8">
+                <h1 class="text-3xl sm:text-4xl font-bold text-indigo-600">Analyseur de Résultats de Tennis Junior</h1>
+                <p class="mt-2 text-md text-gray-600">Analysez les performances par tournoi ou pour toute la saison.</p>
+            </header>
 
-            <!-- Player Detail View Section -->
-            <div id="playerDetailView" class="hidden">
-                <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
-                    <button id="backBtn" class="mb-4 text-indigo-600 hover:text-indigo-800 font-semibold flex items-center space-x-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
-                        <span>Retour</span>
-                    </button>
-                    <div id="playerDetailName" class="text-center mb-6"></div>
-                    <div class="overflow-x-auto">
+            <main>
+                <!-- View Toggle -->
+                <div id="main-nav" class="mb-6 flex justify-center space-x-2">
+                    <button id="pouleViewBtn" class="view-button font-bold py-2 px-6 rounded-lg transition duration-300">Vue par Poule</button>
+                    <button id="cumulativeViewBtn" class="view-button font-bold py-2 px-6 rounded-lg transition duration-300">Vue Cumulative</button>
+                    <button id="top5ViewBtn" class="view-button font-bold py-2 px-6 rounded-lg transition duration-300">Top 5</button>
+                </div>
+
+                <!-- Poule View Section -->
+                <div id="pouleView">
+                     <div class="bg-white p-4 rounded-lg shadow-md mb-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             <div>
+                                <label for="tournamentSelector" class="font-semibold text-gray-700">Tournoi :</label>
+                                <select id="tournamentSelector" class="block w-full mt-1 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></select>
+                             </div>
+                             <div>
+                                <label for="pouleSelector" class="font-semibold text-gray-700">Poule :</label>
+                                <select id="pouleSelector" class="block w-full mt-1 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></select>
+                             </div>
+                        </div>
+                    </div>
+                    <div id="playerDisplay" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+                    <div id="initialMessagePoule" class="text-center py-16"><p class="text-gray-500 text-lg">Veuillez sélectionner un tournoi et une poule pour voir les résultats.</p></div>
+                </div>
+
+                <!-- Cumulative View Section -->
+                <div id="cumulativeView" class="hidden">
+                     <div class="bg-white p-4 rounded-lg shadow-md overflow-x-auto">
+                        <h2 class="text-2xl font-bold text-center mb-4 text-gray-700">Résultats Cumulés de la Saison</h2>
+                        <div id="cumulativeCategoryTabsContainer" class="border-b border-gray-200 mb-4">
+                            <nav class="-mb-px flex space-x-4" aria-label="Tabs">
+                               <!-- Category tabs will be populated here -->
+                            </nav>
+                        </div>
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tournoi</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">M G</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">M P</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">J G</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">J P</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Win %</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rang</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joueur/Joueuse</th>
+                                    <th scope="col" class="sortable-header px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-sort-by="totalG">M G<span class="sort-icon"></span></th>
+                                    <th scope="col" class="sortable-header px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-sort-by="totalP">M P<span class="sort-icon"></span></th>
+                                    <th scope="col" class="sortable-header px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-sort-by="totalJG">J G<span class="sort-icon"></span></th>
+                                    <th scope="col" class="sortable-header px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-sort-by="totalJP">J P<span class="sort-icon"></span></th>
+                                    <th scope="col" class="sortable-header px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-sort-by="winPercentage">Win % (Jeux)<span class="sort-icon"></span></th>
                                 </tr>
                             </thead>
-                            <tbody id="playerDetailTableBody" class="bg-white divide-y divide-gray-200"></tbody>
+                            <tbody id="cumulativeTableBody" class="bg-white divide-y divide-gray-200"></tbody>
                         </table>
+                     </div>
+                </div>
+                
+                <!-- Top 5 View Section -->
+                <div id="top5View" class="hidden">
+                     <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+                        <h2 class="text-2xl font-bold text-center mb-4 text-gray-700">Top 5 de la Saison</h2>
+                        <div id="top5CategoryTabsContainer" class="border-b border-gray-200 mb-6">
+                            <nav class="-mb-px flex space-x-4" aria-label="Tabs">
+                               <!-- Top 5 Category tabs will be populated here -->
+                            </nav>
+                        </div>
+                        <div id="top5Content" class="space-y-10">
+                            <!-- Top 5 content will be rendered here by JS -->
+                        </div>
+                     </div>
+                </div>
+
+                <!-- Player Detail View Section -->
+                <div id="playerDetailView" class="hidden">
+                    <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+                        <button id="backBtn" class="mb-4 text-indigo-600 hover:text-indigo-800 font-semibold flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                            <span>Retour</span>
+                        </button>
+                        <div id="playerDetailName" class="text-center mb-6"></div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tournoi</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">M G</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">M P</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">J G</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">J P</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Win %</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="playerDetailTableBody" class="bg-white divide-y divide-gray-200"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </main>
+            </main>
+        </div>
     </div>
-
     <script>
+        // --- LOGIN LOGIC ---
+        const loginOverlay = document.getElementById('login-overlay');
+        const loginForm = document.getElementById('login-form');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const errorMessage = document.getElementById('error-message');
+        const appContainer = document.getElementById('app-container');
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = usernameInput.value;
+            const password = passwordInput.value;
+
+            // Hardcoded credentials
+            if (username === 'admin' && password === 'password123') {
+                loginOverlay.classList.add('hidden');
+                appContainer.classList.remove('hidden');
+                // Initialize the main application after successful login
+                initApp();
+            } else {
+                errorMessage.textContent = 'Identifiant ou mot de passe incorrect.';
+                errorMessage.classList.remove('hidden');
+            }
+        });
+
         // --- DATA STORE ---
         const CATEGORIES = { L1: "LUTINS 1ÈRE ANNÉE", F1: "LUTINES 1ÈRE ANNÉE", L2: "LUTINS 2ÈME ANNÉE", F2: "LUTINES 2ÈME ANNÉE" };
         let cumulativeData = {};
@@ -641,7 +688,7 @@
                                 <p class="font-bold text-gray-800">${contender.player.name}</p>
                                 <p class="text-xs text-gray-500">${contender.player.club}</p>
                                 <p class="text-xs text-gray-500">${contender.player.license}</p>
-                                <p class="text-sm mt-1 text-indigo-600">Apparu ${contender.count} fois</p>
+                                <p class="text-sm mt-1 text-yellow-500 text-lg">${'⭐'.repeat(contender.count)}</p>
                             </div>
                             <div class="podium-rank-base">
                                 <span class="podium-rank">${rank}</span>
@@ -654,9 +701,8 @@
             return container;
         }
 
-        function init() {
+        function initApp() {
             (function populateInitialData() {
-
                  const tcm_r_TournamentId = "CRITERIUM DES LUTINS DE TENNIS CLUB DE MAHDIA (REGIONAL) - 11-12 JANVIER 2025";
                 allTournaments[tcm_r_TournamentId] = { id: tcm_r_TournamentId, data: {
         "LUTINS 1ÈRE ANNÉE - POULE A": {
@@ -6916,8 +6962,7 @@
                 allTournaments[tnTournamentId] = { id: tnTournamentId, data: { "LUTINS 1ÈRE ANNÉE - POULE A":{players:[{name:"MBAREK Selim",club:"TN",license:"25/002171"},{name:"KHALFALLAH Mohamed Aziz",club:"TN",license:"25/002501"},{name:"HENI Iyed",club:"TCH",license:"25/001636"},{name:"HOUES Adem",club:"TN",license:"25/000505"},{name:"ZARROUK Malek",club:"TCH",license:"25/001641"}],ranking:[{rank:1,name:"ZARROUK Malek",pts:"8",g:"4",p:"0",jg:"16",jp:"1"},{rank:2,name:"KHALFALLAH Mohamed Aziz",pts:"7",g:"3",p:"1",jg:"12",jp:"7"},{rank:3,name:"HENI Iyed",pts:"6",g:"2",p:"2",jg:"9",jp:"9"},{rank:4,name:"MBAREK Selim",pts:"5",g:"1",p:"3",jg:"8",jp:"12"},{rank:5,name:"HOUES ADEM",pts:"0",g:"0",p:"4",jg:"0",jp:"16"}]}, "LUTINS 1ÈRE ANNÉE - POULE B":{players:[{name:"BOUDEN Mohamed Bayrem",club:"TN",license:"25/002587"},{name:"SAHLI Amine",club:"TCH",license:"25/002596"},{name:"CHTIOUI Quaies",club:"TN",license:"25/002503"},{name:"MEMI Salim",club:"TCH",license:"25/002595"}],ranking:[{rank:1,name:"SAHLI Amine",pts:"5",g:"2",p:"1",jg:"11",jp:"5"},{rank:2,name:"BOUDEN Mohamed Bayrem",pts:"5",g:"2",p:"1",jg:"9",jp:"7"},{rank:3,name:"CHTIOUI Quaies",pts:"5",g:"2",p:"1",jg:"9",jp:"8"},{rank:4,name:"MEMI Salim",pts:"3",g:"0",p:"3",jg:"3",jp:"12"}]}, "LUTINES 1ÈRE ANNÉE - POULE A":{players:[{name:"NSIR Naradine",club:"TN",license:"25/000448"},{name:"BEDOUI Roeya",club:"TCKL",license:"25/002477"},{name:"LAKDHAR Zahra",club:"TCH",license:"25/000063"}],ranking:[{rank:1,name:"BEDOUI Roeya",pts:"4",g:"2",p:"0",jg:"8",jp:"2"},{rank:2,name:"LAKDHAR Zahra",pts:"3",g:"1",p:"1",jg:"6",jp:"4"},{rank:3,name:"NSIR Naradine",pts:"2",g:"0",p:"2",jg:"0",jp:"8"}]}, "LUTINS 2ÈME ANNÉE - POULE A":{players:[{name:"EL FAHEM Haroun",club:"TN",license:"25/000499"},{name:"GARBOUJ Arselene",club:"TN",license:"25/000493"},{name:"YOUSSEFI Selim",club:"TCT",license:"25/001197"},{name:"MRAD Noureddine",club:"TCH",license:"25/001639"},{name:"KHRISSI Mohamed Yacine",club:"TCH",license:"25/001638"}],ranking:[{rank:1,name:"GARBOUJ Arselene",pts:"8",g:"4",p:"0",jg:"16",jp:"0"},{rank:2,name:"YOUSSEFI Selim",pts:"7",g:"3",p:"1",jg:"12",jp:"5"},{rank:3,name:"KHRISSI Mohamed Yacine",pts:"6",g:"2",p:"2",jg:"8",jp:"9"},{rank:4,name:"MRAD Noureddine",pts:"5",g:"1",p:"3",jg:"6",jp:"12"},{rank:5,name:"EL FAHEM Haroun",pts:"4",g:"0",p:"4",jg:"0",jp:"16"}]}, "LUTINS 2ÈME ANNÉE - POULE B":{players:[{name:"EZZINE Kenzi",club:"TN",license:"25/000502"},{name:"MEJRI AI Eskander",club:"TCT",license:"25/001194"},{name:"ZIADIA Bader",club:"TCKL",license:"25/000656"},{name:"BEJAOUI Badr",club:"TCH",license:"25/001633"}],ranking:[{rank:1,name:"MEJRI AI Eskander",pts:"6",g:"3",p:"0",jg:"12",jp:"0"},{rank:2,name:"ZIADIA Bader",pts:"5",g:"2",p:"1",jg:"8",jp:"4"},{rank:3,name:"EZZINE Kenzi",pts:"4",g:"1",p:"2",jg:"4",jp:"10"},{rank:4,name:"BEJAOUI Badr",pts:"3",g:"0",p:"3",jg:"2",jp:"12"}]}, "LUTINS 2ÈME ANNÉE - POULE C":{players:[{name:"SASSI Jad",club:"TN",license:"25/000506"},{name:"RAZGALLAH Yahia",club:"TCT",license:"25/002106"},{name:"KADDOUR Youssef",club:"TCH",license:"25/001637"},{name:"TROUDI Aylen",club:"TCKL",license:"25/000655"}],ranking:[{rank:1,name:"KADDOUR Youssef",pts:"6",g:"3",p:"0",jg:"12",jp:"0"},{rank:2,name:"SASSI Jad",pts:"5",g:"2",p:"1",jg:"8",jp:"4"},{rank:3,name:"RAZGALLAH Yahia",pts:"0",g:"0",p:"2",jg:"0",jp:"8"},{rank:4,name:"TROUDI Aylen",pts:"0",g:"0",p:"2",jg:"0",jp:"8"}]}, "LUTINES 2ÈME ANNÉE - POULE A":{players:[{name:"EL BIR Sarra",club:"TN",license:"25/000495"},{name:"HNAIEN Miral",club:"TCMG",license:"25/001377"},{name:"SAINI Joud",club:"TCMG",license:"25/001378"},{name:"LAJNEF Mayla",club:"TCKL",license:"25/002266"},{name:"TASKUN Meryem Sophia",club:"TCKL",license:"25/000657"}],ranking:[{rank:1,name:"EL BIR Sarra",pts:"8",g:"4",p:"0",jg:"16",jp:"1"},{rank:2,name:"LAJNEF Mayla",pts:"7",g:"3",p:"1",jg:"13",jp:"4"},{rank:3,name:"SAINI Joud",pts:"6",g:"2",p:"2",jg:"8",jp:"10"},{rank:4,name:"HNAIEN Miral",pts:"5",g:"1",p:"3",jg:"6",jp:"12"},{rank:5,name:"TASKUN Meryem Sophia",pts:"0",g:"0",p:"4",jg:"0",jp:"16"}]}, "LUTINES 2ÈME ANNÉE - POULE B":{players:[{name:"MANGOUR Mariem",club:"TN",license:"25/000447"},{name:"BOUDERBALA Line",club:"TCMG",license:"25/001376"},{name:"HAOUARI Maya",club:"TCKL",license:"25/002264"},{name:"KHOUJA Farah",club:"TCKL",license:"25/002265"}],ranking:[{rank:1,name:"HAOUARI Maya",pts:"6",g:"3",p:"0",jg:"12",jp:"0"},{rank:2,name:"BOUDERBALA Line",pts:"5",g:"2",p:"1",jg:"8",jp:"5"},{rank:3,name:"MANGOUR Mariem",pts:"4",g:"1",p:"2",jg:"5",jp:"9"},{rank:4,name:"KHOUJA Farah",pts:"3",g:"0",p:"3",jg:"1",jp:"12"}]} }
                 };
                  const gremdaTournamentId = "CRITERIUM DES LUTINS DU ASMJ GREMDA - 28-29 DÉCEMBRE 2024";
-                allTournaments[gremdaTournamentId] = { id: gremdaTournamentId, data: { "LUTINS 1ÈRE ANNÉE - POULE A": { players: [ { name: "HACHICHA Hafedh", club: "ASMJG", license: "25/000328" }, { name: "AMMAR Iskander", club: "CMTCH", license: "25/002460" }, { name: "BEN HAMOUDA Mohamed Ilef", club: "TCHS", license: "25/002268" }, { name: "AFFES Ahmed", club: "ASMJG", license: "25/002493" }, { name: "KALLEL Ibrahim", club: "CMCTH", license: "25/001775" } ], ranking: [ { rank: 1, name: "HACHICHA Hafedh", pts: "8", g: "4", p: "0", jg: "16", jp: "3" }, { rank: 2, name: "AMMAR Iskander", pts: "7", g: "3", p: "1", jg: "14", jp: "5" }, { rank: 3, name: "KALLEL Ibrahim", pts: "6", g: "2", p: "2", jg: "9", jp: "11" }, { rank: 4, name: "BEN HAMOUDA Mohamed Ilef", pts: "5", g: "1", p: "3", jg: "7", jp: "12" }, { rank: 5, name: "AFFES Ahmed", pts: "4", g: "0", p: "3", jg: "1", jp: "16" } ] }, "LUTINS 1ÈRE ANNÉE - POULE B": { players: [ { name: "KAMMOUN Hedi", club: "ASMJG", license: "25/002455" }, { name: "BAKLOUTI Khaled", club: "CMTCH", license: "25/002496" }, { name: "LENGLIZ Yahia", club: "TCHS", license: "25/002282" }, { name: "SAKKA Karam", club: "TCSF", license: "25/002358" } ], ranking: [ { rank: 1, name: "SAKKA Karam", pts: "6", g: "3", p: "0", jg: "12", jp: "3" }, { rank: 2, name: "KAMMOUN Hedi", pts: "5", g: "2", p: "1", jg: "9", jp: "6" }, { rank: 3, name: "LENGLIZ Yahia", pts: "4", g: "1", p: "2", jg: "5", jp: "8" }, { rank: 4, name: "BAKLOUTI Khaled", pts: "3", g: "0", p: "3", jg: "3", jp: "12" } ] }, "LUTINS 1ÈRE ANNÉE - POULE C": { players: [ { name: "SAHNOUN Anas", club: "ASMJG", license: "25/000334" }, { name: "TRIKI İyed", club: "CMTCH", license: "25/002506" }, { name: "MESSAI Abdelkader", club: "TCHS", license: "25/002281" }, { name: "BOUKHRIS Jamel", club: "CMTCH", license: "25/001772" } ], ranking: [ { rank: 1, name: "SAHNOUN Anas", pts: "6", g: "3", p: "0", jg: "12", jp: "2" }, { rank: 2, name: "TRIKI İyed", pts: "5", g: "2", p: "1", jg: "9", jp: "4" }, { rank: 3, name: "BOUKHRIS Jamel", pts: "4", g: "1", p: "2", jg: "5", jp: "10" }, { rank: 4, name: "MESSAI Abdelkader", pts: "3", g: "0", p: "3", jg: "2", jp: "12" } ] }, "LUTINS 1ÈRE ANNÉE - POULE D": { players: [ { name: "ABDELHEDI Salim", club: "ASMJG", license: "25/002458" }, { name: "ZRIBI Youssef", club: "CMTCH", license: "25/002499" }, { name: "KOUADA Skander", club: "MTC", license: "25/000587" }, { name: "BAHLOUL Hedi", club: "ASMJG", license: "25/002615" } ], ranking: [ { rank: 1, name: "KOUADA Skander", pts: "5", g: "2", p: "1", jg: "9", jp: "4" }, { rank: 2, name: "ABDELHEDI Salim", pts: "5", g: "2", p: "1", jg: "11", jp: "6" }, { rank: 3, name: "BAHLOUL Hedi", pts: "5", g: "2", p: "1", jg: "8", jp: "8" }, { rank: 4, name: "ZRIBI Youssef", pts: "3", g: "0", p: "3", jg: "2", jp: "12" } ] }, "LUTINES 1ÈRE ANNÉE - POULE A": { players: [ { name: "ABID Nour", club: "ASMJG", license: "25/000335" }, { name: "GHOUILA Nadine", club: "TCHS", license: "25/002280" }, { name: "SALLEMI Baya", club: "CMTCH", license: "25/001787" }, { name: "BEN NASR Aicha", club: "MTC", license: "25/000585" } ], ranking: [ { rank: 1, name: "BEN NASR Aicha", pts: "6", g: "3", p: "0", jg: "12", jp: "1" }, { rank: 2, name: "SALLEMI Baya", pts: "5", g: "2", p: "1", jg: "8", jp: "8" }, { rank: 3, name: "GHOUILA Nadine", pts: "4", g: "1", p: "2", jg: "7", jp: "8" }, { rank: 4, name: "ABID Nour", pts: "3", g: "0", p: "3", jg: "2", jp: "12" } ] }, "LUTINES 1ÈRE ANNÉE - POULE B": { players: [ { name: "BOUJELBEN Arwa", club: "CMTCH", license: "25/001784" }, { name: "TRAD Line", club: "MTC", license: "25/002298" }, { name: "THABET Alia", club: "TCHS", license: "25/002284" } ], ranking: [ { rank: 1, name: "BOUJELBEN Arwa", pts: "4", g: "2", p: "0", jg: "8", jp: "1" }, { rank: 2, name: "TRAD Line", pts: "3", g: "1", p: "1", jg: "5", jp: "6" }, { rank: 3, name: "THABET Alia", pts: "2", g: "0", p: "2", jg: "2", jp: "8" } ] }, "LUTINS 2ÈME ANNÉE - POULE A": { players: [ { name: "HAMMEMI Amir", club: "ASMJG", license: "25/000330" }, { name: "ALLOUCH Ibrahim", club: "CMTCH", license: "25/001765" }, { name: "LAOUANI Beyram", club: "TCSAY", license: "25/001931" }, { name: "JERIBI Mohamed Arsen", club: "TCM", license: "25/000747" } ], ranking: [ { rank: 1, name: "LAOUANI Beyram", pts: "5", g: "2", p: "1", jg: "11", jp: "6" }, { rank: 2, name: "ALLOUCH Ibrahim", pts: "5", g: "2", p: "1", jg: "10", jp: "6" }, { rank: 3, name: "JERIBI Mohamed Arsen", pts: "5", g: "2", p: "1", jg: "10", jp: "7" }, { rank: 4, name: "HAMMEMI Amir", pts: "3", g: "0", p: "3", jg: "0", jp: "12" } ] }, "LUTINS 2ÈME ANNÉE - POULE B": { players: [ { name: "REBAI Youssef", club: "ASMJG", license: "25/000333" }, { name: "BESBES Bader Yassin", club: "CMTCH", license: "25/001770" }, { name: "EL EUCH Yassine", club: "TCSF", license: "25/001997" }, { name: "AQUINA Houssein", club: "TCHS", license: "25/001565" } ], ranking: [ { rank: 1, name: "AQUINA Houssein", pts: "6", g: "3", p: "0", jg: "12", jp: "0" }, { rank: 2, name: "EL EUCH Yassine", pts: "5", g: "2", p: "1", jg: "8", jp: "4" }, { rank: 3, name: "BESBES Bader Yassin", pts: "4", g: "1", p: "2", jg: "6", jp: "10" }, { rank: 4, name: "REBAI Youssef", pts: "3", g: "0", p: "3", jg: "4", jp: "12" } ] }, "LUTINS 2ÈME ANNÉE - POULE C": { players: [ { name: "CHAFFAI Youssef", club: "ASMJG", license: "25/002021" }, { name: "KARRAY Fares", club: "CMTCH", license: "25/001776" }, { name: "ZAHMOUL Jed", club: "TCHS", license: "25/001576" }, { name: "MEJBRI Mohamed Chedly", club: "TCK", license: "25/001453" } ], ranking: [ { rank: 1, name: "ZAHMOUL Jed", pts: "6", g: "3", p: "0", jg: "12", jp: "2" }, { rank: 2, name: "MEJBRI Mohamed Chedly", pts: "5", g: "2", p: "1", jg: "10", jp: "5" }, { rank: 3, name: "CHAFFAI Youssef", pts: "4", g: "1", p: "2", jg: "4", jp: "9" }, { rank: 4, name: "KARRAY Fares", pts: "3", g: "0", p: "3", jg: "2", jp: "12" } ] }, "LUTINS 2ÈME ANNÉE - POULE D": { players: [ { name: "KESKES Adem", club: "ASMJG", license: "25/000332" }, { name: "NEIFAR Omar", club: "CMTCH", license: "25/001779" }, { name: "KHCHAREM Elyes", club: "TCSF", license: "25/001998" }, { name: "KOTTI Joud", club: "CMTCH", license: "25/001778" } ], ranking: [ { rank: 1, name: "KHCHAREM Elyes", pts: "5", g: "2", p: "1", jg: "10", jp: "4" }, { rank: 2, name: "NEIFAR Omar", pts: "5", g: "2", p: "1", jg: "11", jp: "6" }, { rank: 3, name: "KOTTI Joud", pts: "5", g: "2", p: "1", jg: "8", jp: "7" }, { rank: 4, name: "KESKES Adem", pts: "3", g: "0", p: "3", jg: "0", jp: "12" } ] }, "LUTINS 2ÈME ANNÉE - POULE E": { players: [ { name: "BOUATTOUR Mahdi", club: "ASMJG", license: "25/002019" }, { name: "YAICHE Selim", club: "CMTCH", license: "25/002462" }, { name: "AMOUS Youssef", club: "TCSF", license: "25/001994" }, { name: "BOUHLEL Mohamed Idriss", club: "TCHS", license: "25/001569" } ], ranking: [ { rank: 1, name: "AMOUS Youssef", pts: "6", g: "3", p: "0", jg: "12", jp: "1" }, { rank: 2, name: "YAICHE Selim", pts: "5", g: "2", p: "1", jg: "9", jp: "10" }, { rank: 3, name: "BOUHLEL Mohamed Idriss", pts: "4", g: "1", p: "2", jg: "7", jp: "8" }, { rank: 4, name: "BOUATTOUR Mahdi", pts: "3", g: "0", p: "3", jg: "3", jp: "12" } ] }, "LUTINS 2ÈME ANNÉE - POULE F": { players: [ { name: "EL EUCH Aziz", club: "ASMJG", license: "25/002022" }, { name: "BEN ARAB Mohamed", club: "CMTCH", license: "25/001769" }, { name: "AYADI Skander", club: "TCSF", license: "25/002255" }, { name: "JMAL Aziz", club: "CMTCH", license: "25/001774" } ], ranking: [ { rank: 1, name: "JMAL Aziz", pts: "6", g: "3", p: "0", jg: "12", jp: "1" }, { rank: 2, name: "AYADI Skander", pts: "5", g: "2", p: "1", jg: "8", jp: "9" }, { rank: 3, name: "BEN ARAB Mohamed", pts: "4", g: "1", p: "2", jg: "6", jp: "9" }, { rank: 4, "name": "EL EUCH Aziz", pts: "3", g: "0", p: "3", jg: "5", jp: "12" } ] }, "LUTINES 2ÈME ANNÉE - POULE A": { players: [ { name: "BEN AMAR Chahd", club: "ASMJG", license: "25/000338" }, { name: "BOUKOTTAYA Zain", club: "TCK", license: "25/001692" }, { name: "ABDELHEDI Khadija", club: "CMTCH", license: "25/001782" }, { name: "WALI Lina", club: "TCSF", license: "25/002005" }, { name: "KHAWAM Anais", club: "TCHS", license: "25/001581" } ], ranking: [ { rank: 1, name: "KHAWAM Anais", pts: "8", g: "4", p: "0", jg: "16", jp: "4" }, { rank: 2, name: "BOUKOTTAYA Zain", pts: "6", g: "2", p: "2", jg: "12", jp: "9" }, { rank: 3, name: "ABDELHEDI Khadija", pts: "6", g: "2", p: "2", jg: "12", jp: "13" }, { rank: 4, name: "WALI Lina", pts: "6", g: "2", p: "2", jg: "8", jp: "11" }, { rank: 5, name: "BEN AMAR Chahd", pts: "4", g: "0", p: "4", jg: "5", jp: "16" } ] }, "LUTINES 2ÈME ANNÉE - POULE B": { players: [ { name: "ALOUI Sarra", club: "ASMJG", license: "25/000337" }, { name: "BEN HALIMA Lilia", club: "TCK", license: "25/001418" }, { name: "CHAKROUN Jana", club: "CMTCH", license: "25/001785" }, { name: "BEN WANNES Celine", club: "TCHS", license: "25/001578" }, { name: "HAMMEDI Mila", club: "TCK", license: "25/001419" } ], ranking: [ { rank: 1, name: "BEN WANNES Celine", pts: "7", g: "3", p: "1", jg: "15", jp: "8" }, { rank: 2, name: "BEN HALIMA Lilia", pts: "7", g: "3", p: "1", jg: "14", jp: "7" }, { rank: 3, name: "HAMMEDI Mila", pts: "6", g: "2", p: "2", jg: "11", jp: "9" }, { rank: 4, name: "CHAKROUN Jana", pts: "5", g: "1", p: "3", jg: "7", jp: "15" }, { rank: 5, name: "ALOUI Sarra", pts: "5", g: "1", p: "3", jg: "7", jp: "15" } ] }, "LUTINES 2ÈME ANNÉE - POULE C": { players: [ { name: "JARRAYA Khadija", club: "ASMJG", license: "25/000340" }, { name: "SLAMA Salma", club: "TCK", license: "25/001422" }, { name: "ABID Baya", club: "CMTCH", license: "25/001783" }, { name: "BEN JEMAA Emna", club: "TCSF", license: "25/002000" }, { name: "JRAD Zina Celine", club: "TCHS", license: "25/001580" } ], ranking: [ { rank: 1, name: "SLAMA Salma", pts: "8", g: "4", p: "0", jg: "16", jp: "3" }, { rank: 2, name: "JRAD Zina Celine", pts: "7", g: "3", p: "1", jg: "12", jp: "7" }, { rank: 3, name: "BEN JEMAA Emna", pts: "6", g: "2", p: "2", jg: "11", jp: "11" }, { rank: 4, name: "ABID Baya", pts: "5", g: "1", p: "3", jg: "10", jp: "15" }, { rank: 5, name: "JARRAYA Khadija", pts: "5", g: "1", p: "3", jg: "3", jp: "16" } ] }, "LUTINES 2ÈME ANNÉE - POULE D": { players: [ { name: "BEN ARAB Khadija", club: "ASMJG", license: "25/000339" }, { name: "JERFEL Rayhane", club: "TCK", license: "25/001420" }, { name: "HADDAR Kmar", club: "CMTCH", license: "25/001786" }, { name: "GHORBEL Chema", club: "TCSF", license: "25/002002" }, { name: "MAALOUL Beya", club: "ASMJG", license: "25/000341" } ], ranking: [ { rank: 1, name: "JERFEL Rayhane", pts: "8", g: "4", p: "0", jg: "16", jp: "1" }, { rank: 2, name: "GHORBEL Chema", pts: "7", g: "3", p: "1", jg: "13", jp: "7" }, { rank: 3, name: "BEN ARAB Khadija", pts: "6", g: "2", p: "2", jg: "10", jp: "10" }, { rank: 4, name: "HADDAR Kmar", pts: "5", g: "1", p: "3", jg: "7", jp: "12" }, { rank: 5, name: "MAALOUL Beya", pts: "0", g: "0", p: "4", jg: "0", jp: "16" } ] } } };
-                
+                allTournaments[gremdaTournamentId] = { id: gremdaTournamentId, data: { "LUTINS 1ÈRE ANNÉE - POULE A": { players: [ { name: "HACHICHA Hafedh", club: "ASMJG", license: "25/000328" }, { name: "AMMAR Iskander", club: "CMTCH", license: "25/002460" }, { name: "BEN HAMOUDA Mohamed Ilef", club: "TCHS", license: "25/002268" }, { name: "AFFES Ahmed", club: "ASMJG", license: "25/002493" }, { name: "KALLEL Ibrahim", club: "CMCTH", license: "25/001775" } ], ranking: [ { rank: 1, name: "HACHICHA Hafedh", pts: "8", g: "4", p: "0", jg: "16", jp: "3" }, { rank: 2, name: "AMMAR Iskander", pts: "7", g: "3", p: "1", jg: "14", jp: "5" }, { rank: 3, name: "KALLEL Ibrahim", pts: "6", g: "2", p: "2", jg: "9", jp: "11" }, { rank: 4, name: "BEN HAMOUDA Mohamed Ilef", pts: "5", g: "1", p: "3", jg: "7", jp: "12" }, { rank: 5, name: "AFFES Ahmed", pts: "4", g: "0", p: "3", jg: "1", jp: "16" } ] }, "LUTINS 1ÈRE ANNÉE - POULE B": { players: [ { name: "KAMMOUN Hedi", club: "ASMJG", license: "25/002455" }, { name: "BAKLOUTI Khaled", club: "CMTCH", license: "25/002496" }, { name: "LENGLIZ Yahia", club: "TCHS", license: "25/002282" }, { name: "SAKKA Karam", club: "TCSF", license: "25/002358" } ], ranking: [ { rank: 1, name: "SAKKA Karam", pts: "6", g: "3", p: "0", jg: "12", jp: "3" }, { rank: 2, name: "KAMMOUN Hedi", pts: "5", g: "2", p: "1", jg: "9", jp: "6" }, { rank: 3, name: "LENGLIZ Yahia", pts: "4", g: "1", p: "2", jg: "5", jp: "8" }, { rank: 4, name: "BAKLOUTI Khaled", pts: "3", g: "0", p: "3", jg: "3", jp: "12" } ] }, "LUTINS 1ÈRE ANNÉE - POULE C": { players: [ { name: "SAHNOUN Anas", club: "ASMJG", license: "25/000334" }, { name: "TRIKI İyed", club: "CMTCH", license: "25/002506" }, { name: "MESSAI Abdelkader", club: "TCHS", license: "25/002281" }, { name: "BOUKHRIS Jamel", club: "CMTCH", license: "25/001772" } ], ranking: [ { rank: 1, name: "SAHNOUN Anas", pts: "6", g: "3", p: "0", jg: "12", jp: "2" }, { rank: 2, name: "TRIKI İyed", pts: "5", g: "2", p: "1", jg: "9", jp: "4" }, { rank: 3, name: "BOUKHRIS Jamel", pts: "4", g: "1", p: "2", jg: "5", jp: "10" }, { rank: 4, name: "MESSAI Abdelkader", pts: "3", g: "0", p: "3", jg: "2", jp: "12" } ] }, "LUTINS 1ÈRE ANNÉE - POULE D": { players: [ { name: "ABDELHEDI Salim", club: "ASMJG", license: "25/002458" }, { name: "ZRIBI Youssef", club: "CMTCH", license: "25/002499" }, { name: "KOUADA Skander", club: "MTC", license: "25/000587" }, { name: "BAHLOUL Hedi", club: "ASMJG", license: "25/002615" } ], ranking: [ { rank: 1, name: "KOUADA Skander", pts: "5", g: "2", p: "1", jg: "9", jp: "4" }, { rank: 2, name: "ABDELHEDI Salim", pts: "5", g: "2", p: "1", jg: "11", jp: "6" }, { rank: 3, name: "BAHLOUL Hedi", pts: "5", g: "2", p: "1", jg: "8", jp: "8" }, { rank: 4, name: "ZRIBI Youssef", pts: "3", g: "0", p: "3", jg: "2", jp: "12" } ] }, "LUTINES 1ÈRE ANNÉE - POULE A": { players: [ { name: "ABID Nour", club: "ASMJG", license: "25/000335" }, { name: "GHOUILA Nadine", club: "TCHS", license: "25/002280" }, { name: "SALLEMI Baya", club: "CMTCH", license: "25/001787" }, { name: "BEN NASR Aicha", club: "MTC", license: "25/000585" } ], ranking: [ { rank: 1, name: "BEN NASR Aicha", pts: "6", g: "3", p: "0", jg: "12", jp: "1" }, { rank: 2, name: "SALLEMI Baya", pts: "5", g: "2", p: "1", jg: "8", jp: "8" }, { rank: 3, name: "GHOUILA Nadine", pts: "4", g: "1", p: "2", jg: "7", jp: "8" }, { rank: 4, name: "ABID Nour", pts: "3", g: "0", p: "3", jg: "2", jp: "12" } ] }, "LUTINES 1ÈRE ANNÉE - POULE B": { players: [ { name: "BOUJELBEN Arwa", club: "CMTCH", license: "25/001784" }, { name: "TRAD Line", club: "MTC", license: "25/002298" }, { name: "THABET Alia", club: "TCHS", license: "25/002284" } ], ranking: [ { rank: 1, name: "BOUJELBEN Arwa", pts: "4", g: "2", p: "0", jg: "8", jp: "1" }, { rank: 2, name: "TRAD Line", pts: "3", g: "1", p: "1", jg: "5", jp: "6" }, { rank: 3, name: "THABET Alia", pts: "2", g: "0", p: "2", jg: "2", jp: "8" } ] }, "LUTINS 2ÈME ANNÉE - POULE A": { players: [ { name: "HAMMEMI Amir", club: "ASMJG", license: "25/000330" }, { name: "ALLOUCH Ibrahim", club: "CMTCH", license: "25/001765" }, { name: "LAOUANI Beyram", club: "TCSAY", license: "25/001931" }, { name: "JERIBI Mohamed Arsen", club: "TCM", license: "25/000747" } ], ranking: [ { rank: 1, name: "LAOUANI Beyram", pts: "5", g: "2", p: "1", jg: "11", jp: "6" }, { rank: 2, name: "ALLOUCH Ibrahim", pts: "5", g: "2", p: "1", jg: "10", jp: "6" }, { rank: 3, name: "JERIBI Mohamed Arsen", pts: "5", g: "2", p: "1", jg: "10", jp: "7" }, { rank: 4, name: "HAMMEMI Amir", pts: "3", g: "0", p: "3", jg: "0", jp: "12" } ] }, "LUTINS 2ÈME ANNÉE - POULE B": { players: [ { name: "REBAI Youssef", club: "ASMJG", license: "25/000333" }, { name: "BESBES Bader Yassin", club: "CMTCH", license: "25/001770" }, { name: "EL EUCH Yassine", club: "TCSF", license: "25/001997" }, { name: "AQUINA Houssein", club: "TCHS", license: "25/001565" } ], ranking: [ { rank: 1, name: "AQUINA Houssein", pts: "6", g: "3", p: "0", jg: "12", jp: "0" }, { rank: 2, name: "EL EUCH Yassine", pts: "5", g: "2", p: "1", jg: "8", jp: "4" }, { rank: 3, name: "BESBES Bader Yassin", pts: "4", g: "1", p: "2", jg: "6", jp: "10" }, { rank: 4, name: "REBAI Youssef", pts: "3", g: "0", p: "3", jg: "4", jp: "12" } ] }, "LUTINS 2ÈME ANNÉE - POULE C": { players: [ { name: "CHAFFAI Youssef", club: "ASMJG", license: "25/002021" }, { name: "KARRAY Fares", club: "CMTCH", license: "25/001776" }, { name: "ZAHMOUL Jed", club: "TCHS", license: "25/001576" }, { name: "MEJBRI Mohamed Chedly", club: "TCK", license: "25/001453" } ], ranking: [ { rank: 1, name: "ZAHMOUL Jed", pts: "6", g: "3", p: "0", jg: "12", jp: "2" }, { rank: 2, name: "MEJBRI Mohamed Chedly", pts: "5", g: "2", p: "1", jg: "10", jp: "5" }, { rank: 3, name: "CHAFFAI Youssef", pts: "4", g: "1", p: "2", jg: "4", jp: "9" }, { rank: 4, name: "KARRAY Fares", pts: "3", g: "0", p: "3", jg: "2", jp: "12" } ] }, "LUTINS 2ÈME ANNÉE - POULE D": { players: [ { name: "KESKES Adem", club: "ASMJG", license: "25/000332" }, { name: "NEIFAR Omar", club: "CMTCH", license: "25/001779" }, { name: "KHCHAREM Elyes", club: "TCSF", license: "25/001998" }, { name: "KOTTI Joud", club: "CMTCH", license: "25/001778" } ], ranking: [ { rank: 1, name: "KHCHAREM Elyes", pts: "5", g: "2", p: "1", jg: "10", jp: "4" }, { rank: 2, name: "NEIFAR Omar", pts: "5", g: "2", p: "1", jg: "11", jp: "6" }, { rank: 3, name: "KOTTI Joud", pts: "5", g: "2", p: "1", jg: "8", jp: "7" }, { rank: 4, name: "KESKES Adem", pts: "3", g: "0", p: "3", jg: "0", jp: "12" } ] }, "LUTINS 2ÈME ANNÉE - POULE E": { players: [ { name: "BOUATTOUR Mahdi", club: "ASMJG", license: "25/002019" }, { name: "YAICHE Selim", club: "CMTCH", license: "25/002462" }, { name: "AMOUS Youssef", club: "TCSF", license: "25/001994" }, { name: "BOUHLEL Mohamed Idriss", club: "TCHS", license: "25/001569" } ], ranking: [ { rank: 1, name: "AMOUS Youssef", pts: "6", g: "3", p: "0", jg: "12", jp: "1" }, { rank: 2, name: "YAICHE Selim", pts: "5", g: "2", p: "1", jg: "9", jp: "10" }, { rank: 3, name: "BOUHLEL Mohamed Idriss", pts: "4", g: "1", p: "2", jg: "7", jp: "8" }, { rank: 4, name: "BOUATTOUR Mahdi", pts: "3", g: "0", p: "3", jg: "3", jp: "12" } ] }, "LUTINS 2ÈME ANNÉE - POULE F": { players: [ { name: "EL EUCH Aziz", club: "ASMJG", license: "25/002022" }, { name: "BEN ARAB Mohamed", club: "CMTCH", license: "25/001769" }, { name: "AYADI Skander", club: "TCSF", license: "25/002255" }, { name: "JMAL Aziz", club: "CMTCH", license: "25/001774" } ], ranking: [ { rank: 1, name: "JMAL Aziz", pts: "6", g: "3", p: "0", jg: "12", jp: "1" }, { rank: 2, name: "AYADI Skander", pts: "5", g: "2", p: "1", jg: "8", jp: "9" }, { rank: 3, name: "BEN ARAB Mohamed", pts: "4", g: "1", p: "2", jg: "6", jp: "9" }, { rank: 4, "name": "EL EUCH Aziz", pts: "3", g: "0", p: "3", jg: "5", jp: "12" } ] }, "LUTINES 2ÈME ANNÉE - POULE A": { players: [ { name: "BEN AMAR Chahd", club: "ASMJG", license: "25/000338" }, { name: "BOUKOTTAYA Zain", club: "TCK", license: "25/001692" }, { name: "ABDELHEDI Khadija", club: "CMTCH", license: "25/001782" }, { name: "WALI Lina", club: "TCSF", license: "25/002005" }, { name: "KHAWAM Anais", club: "TCHS", license: "25/001581" } ], ranking: [ { rank: 1, name: "KHAWAM Anais", pts: "8", g: "4", p: "0", jg: "16", jp: "4" }, { rank: 2, name: "BOUKOTTAYA Zain", pts: "6", g: "2", p: "2", jg: "12", jp: "9" }, { rank: 3, name: "ABDELHEDI Khadija", pts: "6", g: "2", p: "2", jg: "12", jp: "13" }, { rank: 4, name: "WALI Lina", pts: "6", g: "2", p: "2", jg: "8", jp: "11" }, { rank: 5, name: "BEN AMAR Chahd", pts: "4", g: "0", p: "4", jg: "5", jp: "16" } ] }, "LUTINES 2ÈME ANNÉE - POULE B": { players: [ { name: "ALOUI Sarra", club: "ASMJG", license: "25/000337" }, { name: "BEN HALIMA Lilia", club: "TCK", license: "25/001418" }, { name: "CHAKROUN Jana", club: "CMTCH", license: "25/001785" }, { name: "BEN WANNES Celine", club: "TCHS", license: "25/001578" }, { name: "HAMMEDI Mila", club: "TCK", license: "25/001419" } ], ranking: [ { rank: 1, name: "BEN WANNES Celine", pts: "7", g: "3", p: "1", jg: "15", jp: "8" }, { rank: 2, name: "BEN HALIMA Lilia", pts: "7", g: "3", p: "1", jg: "14", jp: "7" }, { rank: 3, name: "HAMMEDI Mila", pts: "6", g: "2", p: "2", jg: "11", jp: "9" }, { rank: 4, name: "CHAKROUN Jana", pts: "5", g: "1", p: "3", jg: "7", jp: "15" }, { rank: 5, name: "ALOUI Sarra", pts: "5", g: "1", p: "3", jg: "7", jp: "15" } ] }, "LUTINES 2ÈME ANNÉE - POULE C": { players: [ { name: "JARRAYA Khadija", club: "ASMJG", license: "25/000340" }, { name: "SLAMA Salma", club: "TCK", license: "25/001422" }, { name: "ABID Baya", club: "CMTCH", license: "25/001783" }, { name: "BEN JEMAA Emna", club: "TCSF", license: "25/002000" }, { name: "JRAD Zina Celine", club: "TCHS", license: "25/001580" } ], ranking: [ { rank: 1, name: "SLAMA Salma", pts: "8", g: "4", p: "0", jg: "16", jp: "3" }, { rank: 2, name: "JRAD Zina Celine", pts: "7", g: "3", p: "1", jg: "12", jp: "7" }, { rank: 3, name: "BEN JEMAA Emna", pts: "6", g: "2", p: "2", jg: "11", jp: "11" }, { rank: 4, name: "ABID Baya", pts: "5", g: "1", p: "3", jg: "10", jp: "15" }, { rank: 5, name: "JARRAYA Khadija", pts: "5", g: "1", p: "3", jg: "3", jp: "16" } ] }, "LUTINES 2ÈME ANNÉE - POULE D": { players: [ { name: "BEN ARAB Khadija", club: "ASMJG", license: "25/000339" }, { name: "JERFEL Rayhane", club: "TCK", license: "25/001420" }, { name: "HADDAR Kmar", club: "CMTCH", license: "25/001786" }, { name: "GHORBEL Chema", club: "TCSF", license: "25/002002" }, { name: "MAALOUL Beya", club: "ASMJG", license: "25/000341" } ], ranking: [ { rank: 1, name: "JERFEL Rayhane", pts: "8", g: "4", p: "0", jg: "16", jp: "1" }, { rank: 2, name: "GHORBEL Chema", pts: "7", g: "3", p: "1", jg: "13", jp: "7" }, { rank: 3, name: "BEN ARAB Khadija", pts: "6", g: "2", p: "2", jg: "10", jp: "10" }, { rank: 4, name: "HADDAR Kmar", pts: "5", g: "1", p: "3", jg: "7", jp: "12" }, { rank: 5, name: "MAALOUL Beya", pts: "0", g: "0", p: "4", jg: "0", jp: "16" } ] } } };                
                 Object.values(allTournaments).forEach(processTournamentData);
             })();
             
@@ -6962,8 +7007,6 @@
                 });
             });
         }
-        
-        init();
     </script>
 </body>
 </html>
