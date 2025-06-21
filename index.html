@@ -781,7 +781,7 @@
                 const competitivenessScore = kpis.competitiveness.reduce((acc, kpi) => acc + club[`${kpi}_norm`], 0) / kpis.competitiveness.length;
                 const efficiencyScore = kpis.efficiency.reduce((acc, kpi) => acc + club[`${kpi}_norm`], 0) / kpis.efficiency.length;
                 
-                club.finalScore = (participationScore * 0.30) + (competitivenessScore * 0.35) + (efficiencyScore * 0.35);
+                club.finalScore = (participationScore * 0.05) + (competitivenessScore * 0.15) + (efficiencyScore * 0.8);
             });
 
             // Render Global Score Section
