@@ -214,32 +214,15 @@
                      </div>
                 </div>
 
-                <!-- Player Detail View Section -->
-                <div id="playerDetailView" class="hidden">
+                <!-- Detail View Section (for players and clubs) -->
+                <div id="detailView" class="hidden">
                     <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
                         <button id="backBtn" class="mb-4 text-indigo-600 hover:text-indigo-800 font-semibold flex items-center space-x-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
                             <span>Retour</span>
                         </button>
-                        <div id="playerDetailHeader">
-                           <!-- Player summary will be injected here -->
-                        </div>
-                        <div class="overflow-x-auto mt-6">
-                            <h3 class="text-xl font-bold text-gray-800 mb-3">Historique des Tournois</h3>
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tournoi</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">M G</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">M P</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">J G</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">J P</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Win %</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="playerDetailTableBody" class="bg-white divide-y divide-gray-200"></tbody>
-                            </table>
-                        </div>
+                        <div id="detailHeader"></div>
+                        <div id="detailContent" class="mt-6"></div>
                     </div>
                 </div>
             </main>
@@ -284,7 +267,7 @@
         const cumulativeView = document.querySelector('#cumulativeView');
         const top5View = document.querySelector('#top5View');
         const clubPerformanceView = document.querySelector('#clubPerformanceView');
-        const playerDetailView = document.querySelector('#playerDetailView');
+        const detailView = document.querySelector('#detailView');
         
         const mainNav = document.querySelector('#main-nav');
         const pouleViewBtn = document.querySelector('#pouleViewBtn');
@@ -307,8 +290,8 @@
         const clubPerformanceContent = document.querySelector('#clubPerformanceContent');
 
         const backBtn = document.querySelector('#backBtn');
-        const playerDetailHeader = document.querySelector('#playerDetailHeader');
-        const playerDetailTableBody = document.querySelector('#playerDetailTableBody');
+        const detailHeader = document.querySelector('#detailHeader');
+        const detailContent = document.querySelector('#detailContent');
 
         // --- DATA PROCESSING ---
         function getCategoryFromPouleKey(pouleKey) {
@@ -369,13 +352,15 @@
 
         // --- UI RENDERING ---
         function switchView(view) {
-            lastView = ['poule', 'cumulative', 'top5', 'clubPerformance'].includes(view) ? view : lastView;
-            mainNav.classList.toggle('hidden', view === 'playerDetail');
+            if (['poule', 'cumulative', 'top5', 'clubPerformance'].includes(view)) {
+                lastView = view;
+            }
+            mainNav.classList.toggle('hidden', ['detail', 'clubDetail', 'clubTournaments'].includes(view));
             pouleView.classList.toggle('hidden', view !== 'poule');
             cumulativeView.classList.toggle('hidden', view !== 'cumulative');
             top5View.classList.toggle('hidden', view !== 'top5');
             clubPerformanceView.classList.toggle('hidden', view !== 'clubPerformance');
-            playerDetailView.classList.toggle('hidden', view !== 'playerDetail');
+            detailView.classList.toggle('hidden', !['detail', 'clubDetail', 'clubTournaments'].includes(view));
             
             pouleViewBtn.classList.toggle('active', view === 'poule');
             cumulativeViewBtn.classList.toggle('active', view === 'cumulative');
@@ -609,7 +594,6 @@
              const playerData = cumulativeData[category]?.[license];
             if(!playerData) return;
             
-            // Calculate summary stats
             const tournamentsPlayed = playerData.tournaments.length;
             const tournamentsWon = playerData.tournaments.filter(t => t.rank === 1).length;
             const tournamentWinRate = tournamentsPlayed > 0 ? (tournamentsWon / tournamentsPlayed) * 100 : 0;
@@ -618,7 +602,7 @@
             const totalGames = playerData.totalJG + playerData.totalJP;
             const gameWinRate = totalGames > 0 ? (playerData.totalJG / totalGames) * 100 : 0;
 
-            playerDetailHeader.innerHTML = `
+            detailHeader.innerHTML = `
                 <div class="text-center">
                     <h2 class="text-2xl font-bold text-gray-800">${playerData.name}</h2>
                     <p class="text-md text-gray-500 mt-1">${playerData.club} - ${playerData.license}</p>
@@ -652,8 +636,29 @@
                     </dl>
                 </div>
             `;
+            
+            detailContent.innerHTML = ''; // Clear previous content
+            const tableContainer = document.createElement('div');
+            tableContainer.className = "overflow-x-auto mt-6";
+            tableContainer.innerHTML = `
+                <h3 class="text-xl font-bold text-gray-800 mb-3">Historique des Tournois</h3>
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tournoi</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">M G</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">M P</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">J G</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">J P</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Win % (Jeux)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="playerDetailTableBody" class="bg-white divide-y divide-gray-200"></tbody>
+                </table>
+            `;
+            detailContent.appendChild(tableContainer);
 
-            playerDetailTableBody.innerHTML = '';
+            const tableBody = detailContent.querySelector('#playerDetailTableBody');
             playerData.tournaments.forEach(tourney => {
                 const totalGames = tourney.jg + tourney.jp;
                 const winPercentage = totalGames > 0 ? `${Math.round((tourney.jg / totalGames) * 100)}%` : 'N/A';
@@ -666,11 +671,118 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${tourney.jp}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-indigo-600 font-semibold">${winPercentage}</td>
                 `;
-                playerDetailTableBody.appendChild(row);
+                tableBody.appendChild(row);
             });
-            switchView('playerDetail');
+            switchView('detail');
         }
         
+        function renderClubDetailView(clubName, category) {
+            switchView('clubDetail');
+            detailHeader.innerHTML = `<h2 class="text-2xl font-bold text-center text-gray-800">${clubName}</h2><p class="text-md text-center text-gray-500">${category}</p>`;
+            detailContent.innerHTML = '';
+
+            const players = Object.values(cumulativeData[category] || {}).filter(p => p.club === clubName);
+            
+            if (players.length === 0) {
+                detailContent.innerHTML = '<p class="text-center text-gray-500">Aucun joueur trouvé pour ce club dans cette catégorie.</p>';
+                return;
+            }
+            
+            const playerGrid = document.createElement('div');
+            playerGrid.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6";
+
+            players.forEach(player => {
+                playerGrid.appendChild(createPlayerSummaryCard(player));
+            });
+            detailContent.appendChild(playerGrid);
+        }
+
+        function createPlayerSummaryCard(player) {
+            const card = document.createElement('div');
+            card.className = 'card p-4 flex flex-col space-y-3';
+            
+            const tournamentsPlayed = player.tournaments.length;
+            const tournamentsWon = player.tournaments.filter(t => t.rank === 1).length;
+            const tournamentWinRate = tournamentsPlayed > 0 ? (tournamentsWon / tournamentsPlayed) * 100 : 0;
+            const totalMatches = player.totalG + player.totalP;
+            const matchWinRate = totalMatches > 0 ? (player.totalG / totalMatches) * 100 : 0;
+            const totalGames = player.totalJG + player.totalJP;
+            const gameWinRate = totalGames > 0 ? (player.totalJG / totalGames) * 100 : 0;
+            
+            card.innerHTML = `
+                <div>
+                    <h3 class="font-bold text-lg text-indigo-700">${player.name}</h3>
+                    <p class="text-sm text-gray-500">${player.license}</p>
+                </div>
+                <div class="border-t pt-3 space-y-2 text-sm">
+                    <div class="flex justify-between"><span>Tournois:</span> <span class="font-semibold">${tournamentsPlayed} (Gagnés: ${tournamentsWon})</span></div>
+                    <div class="flex justify-between"><span>Matchs (G/T):</span> <span class="font-semibold">${player.totalG} / ${totalMatches} (${matchWinRate.toFixed(0)}%)</span></div>
+                    <div class="flex justify-between"><span>Jeux (G/T):</span> <span class="font-semibold">${player.totalJG} / ${totalGames} (${gameWinRate.toFixed(0)}%)</span></div>
+                </div>
+            `;
+            return card;
+        }
+
+        function renderClubTournamentsView(clubName, category) {
+            switchView('clubTournaments');
+            detailHeader.innerHTML = `<h2 class="text-2xl font-bold text-center text-gray-800">Participations de ${clubName}</h2><p class="text-md text-center text-gray-500">${category}</p>`;
+            detailContent.innerHTML = '';
+
+            const playersOfClub = Object.values(cumulativeData[category] || {}).filter(p => p.club === clubName);
+            
+            if (playersOfClub.length === 0) {
+                detailContent.innerHTML = '<p class="text-center text-gray-500">Aucun joueur de ce club trouvé dans cette catégorie.</p>';
+                return;
+            }
+
+            const tournamentsByClub = {};
+            playersOfClub.forEach(player => {
+                player.tournaments.forEach(t => {
+                    if (!tournamentsByClub[t.id]) {
+                        tournamentsByClub[t.id] = [];
+                    }
+                    tournamentsByClub[t.id].push({ name: player.name, rank: t.rank, license: player.license });
+                });
+            });
+
+            const tableContainer = document.createElement('div');
+            tableContainer.className = "overflow-x-auto mt-6";
+
+            let tableHTML = `
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3">Tournoi</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joueurs Participants</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+            `;
+
+            for (const tournamentId in tournamentsByClub) {
+                const participants = tournamentsByClub[tournamentId];
+                const playerListHTML = participants.map(p => {
+                    const trophy = p.rank === 1 ? ' 🏆' : '';
+                    return `<span class="inline-block mr-4">${p.name} (${p.license})${trophy}</span>`;
+                }).join('');
+
+                tableHTML += `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-normal text-sm font-medium text-gray-900">${tournamentId}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500">${playerListHTML}</td>
+                    </tr>
+                `;
+            }
+
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+            
+            tableContainer.innerHTML = tableHTML;
+            detailContent.appendChild(tableContainer);
+        }
+
         // --- TOP 5 VIEW LOGIC ---
         function renderTop5View(category) {
             top5Content.innerHTML = '';
@@ -881,7 +993,7 @@
             const globalScoreSection = document.createElement('div');
             globalScoreSection.innerHTML = `<h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">Classement Global des Clubs</h3>`;
             const finalRanking = [...clubArray].sort((a,b) => b.finalScore - a.finalScore);
-            globalScoreSection.appendChild(createClubListHTML('Score Final', finalRanking, c => c.finalScore.toFixed(2), '/ 10'));
+            globalScoreSection.appendChild(createClubListHTML('Score Final', finalRanking, c => c.finalScore.toFixed(2), '/ 10', category, false));
             clubPerformanceContent.appendChild(globalScoreSection);
             clubPerformanceContent.insertAdjacentHTML('beforeend', '<hr class="my-8 border-t-2">');
 
@@ -894,42 +1006,49 @@
             efficiencySection.innerHTML = `<h3 class="text-xl font-bold text-gray-800 mb-3">⚙️ Efficience et Développement</h3>`;
 
             // Sort and render for Participation
-            participationSection.appendChild(createClubListHTML('Total des Joueurs Participants', [...clubArray].sort((a, b) => b.playerCount - a.playerCount), c => c.playerCount, 'joueurs'));
-            participationSection.appendChild(createClubListHTML('Total des Inscriptions en Tournoi', [...clubArray].sort((a, b) => b.totalTournamentEntries - a.totalTournamentEntries), c => c.totalTournamentEntries, 'inscriptions'));
-            participationSection.appendChild(createClubListHTML('Moyenne de Tournois par Joueur', [...clubArray].sort((a, b) => b.avgTournamentsPerPlayer - a.avgTournamentsPerPlayer), c => c.avgTournamentsPerPlayer.toFixed(2), 'tournois/joueur'));
+            participationSection.appendChild(createClubListHTML('Total des Joueurs Participants', [...clubArray].sort((a, b) => b.playerCount - a.playerCount), c => c.playerCount, 'joueurs', category, true));
+            participationSection.appendChild(createClubListHTML('Total des Inscriptions en Tournoi', [...clubArray].sort((a, b) => b.totalTournamentEntries - a.totalTournamentEntries), c => c.totalTournamentEntries, 'inscriptions', category, true));
             
             // Sort and render for Competitiveness
-            competitivenessSection.appendChild(createClubListHTML('Total des Tournois Gagnés', [...clubArray].sort((a, b) => b.tournamentsWon - a.tournamentsWon || b.matchWinRate - a.matchWinRate), c => c.tournamentsWon, 'victoires'));
-            competitivenessSection.appendChild(createClubListHTML('Podiums (Top 2)', [...clubArray].sort((a, b) => b.podiumFinishes - a.podiumFinishes || b.matchWinRate - a.matchWinRate), c => c.podiumFinishes, 'podiums'));
+            competitivenessSection.appendChild(createClubListHTML('Total des Tournois Gagnés', [...clubArray].sort((a, b) => b.tournamentsWon - a.tournamentsWon || b.matchWinRate - a.matchWinRate), c => c.tournamentsWon, 'victoires', category, false));
+            competitivenessSection.appendChild(createClubListHTML('Podiums (Top 2)', [...clubArray].sort((a, b) => b.podiumFinishes - a.podiumFinishes || b.matchWinRate - a.matchWinRate), c => c.podiumFinishes, 'podiums', category, false));
 
             // Sort and render for Efficiency
-            efficiencySection.appendChild(createClubListHTML('Taux de Victoire du Club (par inscription)', [...clubArray].sort((a, b) => b.clubWinRate - a.clubWinRate), c => `${(c.clubWinRate * 100).toFixed(0)}%`, ''));
-            efficiencySection.appendChild(createClubListHTML('Taux de Conversion en Podium (par inscription)', [...clubArray].sort((a, b) => b.podiumConversionRate - a.podiumConversionRate), c => `${(c.podiumConversionRate * 100).toFixed(0)}%`, ''));
-            efficiencySection.appendChild(createClubListHTML('Victoires par Joueur', [...clubArray].sort((a, b) => b.winsPerPlayer - a.winsPerPlayer), c => c.winsPerPlayer.toFixed(2), ''));
+            efficiencySection.appendChild(createClubListHTML('Moyenne de Tournois par Joueur', [...clubArray].sort((a, b) => b.avgTournamentsPerPlayer - a.avgTournamentsPerPlayer), c => c.avgTournamentsPerPlayer.toFixed(2), 'tournois/joueur', category, false));
+            efficiencySection.appendChild(createClubListHTML('Taux de Victoire du Club (par inscription)', [...clubArray].sort((a, b) => b.clubWinRate - a.clubWinRate), c => `${(c.clubWinRate * 100).toFixed(0)}%`, '', category, false));
+            efficiencySection.appendChild(createClubListHTML('Taux de Conversion en Podium (par inscription)', [...clubArray].sort((a, b) => b.podiumConversionRate - a.podiumConversionRate), c => `${(c.podiumConversionRate * 100).toFixed(0)}%`, '', category, false));
+            efficiencySection.appendChild(createClubListHTML('Victoires par Joueur', [...clubArray].sort((a, b) => b.winsPerPlayer - a.winsPerPlayer), c => c.winsPerPlayer.toFixed(2), '', category, false));
             
             clubPerformanceContent.appendChild(participationSection);
             clubPerformanceContent.appendChild(competitivenessSection);
             clubPerformanceContent.appendChild(efficiencySection);
         }
 
-        function createClubListHTML(title, clubs, dataExtractor, dataLabel) {
+        function createClubListHTML(title, clubs, dataExtractor, dataLabel, category, isClickable) {
             const sectionContainer = document.createElement('div');
             sectionContainer.innerHTML = `<h4 class="text-lg font-semibold text-gray-700 mt-6 mb-2">${title}</h4>`;
             let clubRows = `<tr class="bg-white"><td colspan="3" class="text-center py-4 text-gray-500">Aucun club ne correspond.</td></tr>`;
 
             if (clubs.length > 0) {
-                clubRows = clubs.map((club, index) => `
+                clubRows = clubs.map((club, index) => {
+                    let clubNameHTML;
+                    if(isClickable){
+                        const action = title === 'Total des Joueurs Participants' ? 'view-club-players' : 'view-club-tournaments';
+                        clubNameHTML = `<a href="#" class="club-link text-sm font-semibold text-indigo-600 hover:text-indigo-800" data-action="${action}" data-club-name="${club.name}">${club.name}</a>`;
+                    } else {
+                        clubNameHTML = `<div class="text-sm font-semibold text-gray-900">${club.name}</div>`;
+                    }
+                    
+                    return `
                     <tr class="bg-white ${index >= 5 ? 'extra-row hidden' : ''}">
                         <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-500">${index + 1}</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <div class="text-sm font-semibold text-gray-900">${club.name}</div>
-                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">${clubNameHTML}</td>
                         <td class="px-4 py-3 whitespace-nowrap text-right">
                             <span class="font-bold text-indigo-600">${dataExtractor(club)}</span>
                             <span class="text-xs text-gray-500 ml-1">${dataLabel}</span>
                         </td>
                     </tr>
-                `).join('');
+                `}).join('');
             }
             
             const tableContainer = document.createElement('div');
@@ -965,7 +1084,7 @@
             return sectionContainer;
         }
 
-        function initApp() {
+function initApp() {
             // =================================================================================
             // --- DATA INPUT ---
             // =================================================================================
@@ -1371,8 +1490,8 @@
                         { "name": "BARREK Mohamed Amir", "club": "TCK", "license": "25/002662" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "KALLEL Ibrahim", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "BEN AMROU Idriss", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "KALLEL Ibrahim", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "BEN AMROU Idriss", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "BEN HAMOUDA Mohamed Ilef", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "BARREK Mohamed Amir", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -1385,8 +1504,8 @@
                         { "name": "KOUADA Skander", "club": "MTC", "license": "25/000587" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "KAMMOUN Hedi", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "AMMAR Iskander", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "KAMMOUN Hedi", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "AMMAR Iskander", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "LENGLIZ Yahia", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "KOUADA Skander", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -1399,8 +1518,8 @@
                         { "name": "TRIKI Iyed", "club": "CMTCH", "license": "25/002506" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "BEDOUI Brahim", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "HAMROUNI Skander", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "BEDOUI Brahim", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "HAMROUNI Skander", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "SAHNOUN Anas", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "TRIKI Iyed", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -1413,8 +1532,8 @@
                         { "name": "DHOUIBI Yassine", "club": "TCT", "license": "25/002186" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "ZARROUK Malek", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "AYEDI Ilyes", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "ZARROUK Malek", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "AYEDI Ilyes", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "BEN SAID Haroun", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "DHOUIBI Yassine", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -1427,8 +1546,8 @@
                         { "name": "ABDELHEDI Salim", "club": "ASMJG", "license": "25/002458" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "MKAOUAR Ahmed Nejib", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "MESSAI Abdelkader", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "MKAOUAR Ahmed Nejib", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "MESSAI Abdelkader", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "SAKKA Karam", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "ABDELHEDI Salim", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -1441,8 +1560,8 @@
                         { "name": "JAMMOUSSI Mohamed Aziz", "club": "TCSF", "license": "25/002726" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "BAKLOUTI Khaled", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "BAHLOUL Hedi", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "BAKLOUTI Khaled", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "BAHLOUL Hedi", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "MBARKI Aman Allah", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "JAMMOUSSI Mohamed Aziz", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -1471,8 +1590,8 @@
                         { "name": "SLEMA Zaineb", "club": "TCK", "license": "25/002660" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "ZAGHDOUDI Aya", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "BOUJELBEN Arwa", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "ZAGHDOUDI Aya", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "BOUJELBEN Arwa", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "AJROUD Bissene", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "SLEMA Zaineb", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -1485,8 +1604,8 @@
                         { "name": "KTATA Emna", "club": "TCT", "license": "25/002094" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "ABID Nour", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "BOUHLEL Tasnim", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "ABID Nour", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "BOUHLEL Tasnim", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "KACHROUDI Nour", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "KTATA Emna", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -1499,8 +1618,8 @@
                         { "name": "HEDIDAR Lynda", "club": "TCT", "license": "25/002263" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "GHOUILA Nadine", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "MOALLA Nour", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "GHOUILA Nadine", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "MOALLA Nour", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "TRAD Line", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "HEDIDAR Lynda", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -1514,8 +1633,8 @@
                         { "name": "MRAD Noureddine", "club": "TCH", "license": "25/001639" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "KESKES Adem", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "GARBOUJ Arselene", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "KESKES Adem", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "GARBOUJ Arselene", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "YAICHE Selim", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "AQUINA Houssein", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 5, "name": "MRAD Noureddine", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
@@ -1530,8 +1649,8 @@
                         { "name": "CHAFFAI Youssef", "club": "ASMJG", "license": "25/002021" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "MDEMEGH Hamza", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "BOUHLEL Mohamed Idriss", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "MDEMEGH Hamza", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "BOUHLEL Mohamed Idriss", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "ALLOUCH Ibrahim", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "KHCHAREM Elyes", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 5, "name": "CHAFFAI Youssef", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
@@ -1545,8 +1664,8 @@
                         { "name": "LAHMADI Mohamed", "club": "TCT", "license": "25/002100" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "BACHA Mohamed Elyes", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "ZAHMOUL Jed", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "BACHA Mohamed Elyes", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "ZAHMOUL Jed", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "BEN ARAB Mohamed", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "LAHMADI Mohamed", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -1559,8 +1678,8 @@
                         { "name": "HAJ FRAJ Yahya", "club": "TCT", "license": "25/002188" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "AYADI Skander", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "BEN ARFI Bayrem", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "AYADI Skander", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "BEN ARFI Bayrem", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "JMAL Aziz", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "HAJ FRAJ Yahya", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -1573,8 +1692,8 @@
                         { "name": "CHIIRAT Mohamed Amine", "club": "GTCG", "license": "25/002630" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "BENZARTI Yassine", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "REBAI Youssef", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "BENZARTI Yassine", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "REBAI Youssef", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "KOTTI Joud", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "CHIIRAT Mohamed Amine", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -1587,8 +1706,8 @@
                         { "name": "KADDOUR Youssef", "club": "TCH", "license": "25/001637" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "CHEHATA Mohamed Adam", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "SRIHA Mouayed", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "CHEHATA Mohamed Adam", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "SRIHA Mouayed", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "AMOUS Youssef", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "KADDOUR Youssef", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -1601,8 +1720,8 @@
                         { "name": "NEIFAR Omar", "club": "CMTCH", "license": "25/001779" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "AROUS Taym", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "AMRI Louay", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "AROUS Taym", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "AMRI Louay", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "BOUKADIDA Salim", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "NEIFAR Omar", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -1615,8 +1734,8 @@
                         { "name": "DOGHMAN Ouways", "club": "GTCG", "license": "25/002631" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "YOUSSEF Younes", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "AYADI Salim", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "YOUSSEF Younes", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "AYADI Salim", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "JARANDI Khalil", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "DOGHMAN Ouways", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -1629,8 +1748,8 @@
                         { "name": "KACEM Fares", "club": "TCT", "license": "25/001192" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "RAZGALLAH Yahia", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "ELLOUZE Ahmed", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "RAZGALLAH Yahia", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "ELLOUZE Ahmed", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "EL EUCH Aziz", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "KACEM Fares", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -1643,8 +1762,8 @@
                         { "name": "EL EUCH Yassine", "club": "TCSF", "license": "25/001997" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "BOUATTOUR Mahdi", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "KARRAY Fares", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "BOUATTOUR Mahdi", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "KARRAY Fares", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "MEJBRI Mohamed Chedly", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "EL EUCH Yassine", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -1658,8 +1777,8 @@
                         { "name": "HIZEM Zeineb", "club": "TCMO", "license": "25/000817" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "BOULAHIA Louisa", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "BEN ARAB Khadija", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "BOULAHIA Louisa", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "BEN ARAB Khadija", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "BOUABDALLAH Lina", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "JAZIRI Sarra", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 5, "name": "HIZEM Zeineb", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
@@ -1673,8 +1792,8 @@
                         { "name": "WALI Lina", "club": "TCSF", "license": "25/002005" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "ALOUI Sarra", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "MAMI Sandra", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "ALOUI Sarra", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "MAMI Sandra", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "BEN HALIMA Lilia", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "WALI Lina", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -1687,8 +1806,8 @@
                         { "name": "BOUGHANMI Yasmine", "club": "TCT", "license": "25/001200" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "ABDOU Ritta", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "JERFEL Rayhane", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "ABDOU Ritta", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "JERFEL Rayhane", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "KHAWAM Anais", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "BOUGHANMI Yasmine", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -1701,8 +1820,8 @@
                         { "name": "JARRAYA Khadija", "club": "ASMJG", "license": "25/000340" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "EL BIR Sarra", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "SLAMA Salma", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "EL BIR Sarra", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "SLAMA Salma", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "ABDELHEDI Khadija", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "JARRAYA Khadija", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -1715,8 +1834,8 @@
                         { "name": "MAATOUK Dorra", "club": "TCMO", "license": "25/000757" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "JEMEL Lina", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "BOUKOTTAYA Zain", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "JEMEL Lina", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "BOUKOTTAYA Zain", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "CHAKROUN Jana", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "MAATOUK Dorra", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -1729,8 +1848,8 @@
                         { "name": "BEN AMAR Chahd", "club": "ASMJG", "license": "25/000338" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "SIALA Souad Zonio", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "BEN JEMAA Emna", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "SIALA Souad Zonio", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "BEN JEMAA Emna", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "JALLELI Khadija", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "BEN AMAR Chahd", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -1743,8 +1862,8 @@
                         { "name": "HADDAR Kmar", "club": "CMTCH", "license": "25/001786" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "QUESLATI Zeineb", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "HAMMEDI Mila", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "QUESLATI Zeineb", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "HAMMEDI Mila", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "JRAD Zina Celine", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "HADDAR Kmar", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -1757,8 +1876,8 @@
                         { "name": "GHORBEL Chema", "club": "TCSF", "license": "25/002002" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "ABID Baya", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "GARES Ghalia", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "ABID Baya", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "GARES Ghalia", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "MSAKNI Mariem", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "GHORBEL Chema", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -5219,8 +5338,8 @@
                         { "name": "GHARIANI Fedi", "club": "TN", "license": "25/000503" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "CHERNI Ahmed Zakaria", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "MKAOUAR Ahmed Nejib", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "CHERNI Ahmed Zakaria", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "MKAOUAR Ahmed Nejib", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "RAHALI Eden", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "GARGOURI Skander", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 5, "name": "GHARIANI Fedi", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
@@ -5250,8 +5369,8 @@
                         { "name": "HAMDI Skander", "club": "TCMG", "license": "25/002836" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "BEN SALAH Mehdi", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "BEN MRAD Selim", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "BEN SALAH Mehdi", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "BEN MRAD Selim", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "CHEIKH Youssef", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "HAMDI Skander", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -5264,8 +5383,8 @@
                         { "name": "BEN SASSI Haroun", "club": "TCSOF", "license": "25/000999" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "JERBI Aziz", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "OUERTANI Elyes", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "JERBI Aziz", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "OUERTANI Elyes", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "BELLIL Ismail", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "BEN SASSI Haroun", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -5278,8 +5397,8 @@
                         { "name": "YAZIDI Mohamed Haroun", "club": "BBS", "license": "25/002956" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "MAAZOUN Hedi", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "BEN AMROU Idriss", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "MAAZOUN Hedi", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "BEN AMROU Idriss", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "KAROUI Haroune", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "YAZIDI Mohamed Haroun", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -5323,8 +5442,8 @@
                         { "name": "KTATA Emna", "club": "TCT", "license": "25/002094" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "MZOUGHI Sophia", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "TRIKI May", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "MZOUGHI Sophia", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "TRIKI May", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "BEN AMOR Sarra", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "GLENZA Linda", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 5, "name": "KTATA Emna", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
@@ -5339,8 +5458,8 @@
                         { "name": "LASRAM Yasmine", "club": "TCT", "license": "25/002096" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "BACCOUCHE Alya", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "TOUIHRI Dorra", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "BACCOUCHE Alya", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "TOUIHRI Dorra", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "KHLIFI Eya", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "KAANICHE Sarra", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 5, "name": "LASRAM Yasmine", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
@@ -5355,8 +5474,8 @@
                         { "name": "SASSI Jad", "club": "TN", "license": "25/000506" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "CHAIBI Mehdi", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "CHOUCHEN Mohamed Malek", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "CHAIBI Mehdi", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "CHOUCHEN Mohamed Malek", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "ABASSI Omar", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "ESSAAFI Yahia", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 5, "name": "SASSI Jad", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
@@ -5370,8 +5489,8 @@
                         { "name": "JOUINI Hedi Aziz", "club": "TCT", "license": "25/001191" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "FEKI Yassine", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "ZIDI Zakarya", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "FEKI Yassine", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "ZIDI Zakarya", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "BEN ROMDHANE Malek", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "JOUINI Hedi Aziz", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -5384,8 +5503,8 @@
                         { "name": "MEJRI AI Eskander", "club": "TCT", "license": "25/001194" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "BCHIR Mehdi", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "ARIFI Youssef", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "BCHIR Mehdi", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "ARIFI Youssef", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "HRAM Mehdi", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "MEJRI AI Eskander", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -5398,8 +5517,8 @@
                         { "name": "GRIBAA Skander", "club": "TCT", "license": "25/001190" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "KAFFEL Elyes", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "BEN ARIBIA Karim", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "KAFFEL Elyes", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "BEN ARIBIA Karim", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "MEJRI Ahmed", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "GRIBAA Skander", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -5412,8 +5531,8 @@
                         { "name": "ANNABI Mehdi", "club": "TCB", "license": "25/000595" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "SELLAMI Yassine", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "ZRIBI Hedi", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "SELLAMI Yassine", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "ZRIBI Hedi", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "DABBECH Aziz", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "ANNABI Mehdi", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -5426,8 +5545,8 @@
                         { "name": "KAMMOUN Mahdi", "club": "TCSOF", "license": "25/001000" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "BENNOUR Jed", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "ALLANI Haroun", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "BENNOUR Jed", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "ALLANI Haroun", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "TOUKABRI Zakaria", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "KAMMOUN Mahdi", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -5440,8 +5559,8 @@
                         { "name": "LAHMADI Mohamed", "club": "TCT", "license": "25/002100" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "EL HAMDI Seifallah", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "CHAHDOURA Ahmed", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "EL HAMDI Seifallah", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "CHAHDOURA Ahmed", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "ZIADIA Bader", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "LAHMADI Mohamed", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -5454,8 +5573,8 @@
                         { "name": "TANNOUBI Bayrem", "club": "TCT", "license": "25/001195" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "MBAZAIA Elyes", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "ZIDI Harun", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "MBAZAIA Elyes", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "ZIDI Harun", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "BELHADJ Sadin", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "TANNOUBI Bayrem", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -5468,8 +5587,8 @@
                         { "name": "RAZGALLAH Yahia", "club": "TCT", "license": "25/002106" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "TARCHOUN Hedi", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "KEBAIER Iskander", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "TARCHOUN Hedi", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "KEBAIER Iskander", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "EL HAMZI Chady", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "RAZGALLAH Yahia", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -5482,8 +5601,8 @@
                         { "name": "JARANDI Khalil", "club": "TCT", "license": "25/002190" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "ABID Mahdi", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "YOUSSEFI Selim", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "ABID Mahdi", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "YOUSSEFI Selim", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "YOUSSEF Younes", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "JARANDI Khalil", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -5496,8 +5615,8 @@
                         { "name": "HAJ FRAJ Yahya", "club": "TCT", "license": "25/002188" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "CHELLI Malek", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "KACEM Fares", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "CHELLI Malek", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "KACEM Fares", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "GUERMAZI Hedi", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "HAJ FRAJ Yahya", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -5511,8 +5630,8 @@
                         { "name": "MAGROUN Lilia", "club": "TCSOF", "license": "25/000990" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "BAROUNI Lydia", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "JEMEL Lina", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "BAROUNI Lydia", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "JEMEL Lina", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "BOUABDALLAH Lina", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "MOKRANI Lina", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 5, "name": "MAGROUN Lilia", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
@@ -5526,8 +5645,8 @@
                         { "name": "KOTTI Mayar", "club": "TCB", "license": "25/000591" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "EL AKKAD Julia", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "SIALA Souad Zonio", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "EL AKKAD Julia", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "SIALA Souad Zonio", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "GHARBI Julia", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "KOTTI Mayar", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -5540,8 +5659,8 @@
                         { "name": "HAQUETI Mariem", "club": "TCB", "license": "25/000601" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "MAMI Sandra", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "KAFFELA Eya", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "MAMI Sandra", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "KAFFELA Eya", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "SELLAMI Yasmine", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "HAQUETI Mariem", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -5554,8 +5673,8 @@
                         { "name": "LAJNEF Mayla", "club": "TCKL", "license": "25/002266" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "QUESLATI Zeineb", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "ALMAHDHI llef", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "QUESLATI Zeineb", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "ALMAHDHI llef", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "FEKI Yasmine", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "LAJNEF Mayla", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -5568,8 +5687,8 @@
                         { "name": "TASKUN Meryem Sophia", "club": "TCKL", "license": "25/000657" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "BOUKHRIS Nadine", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "MISSAOUI Sarra", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "BOUKHRIS Nadine", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "MISSAOUI Sarra", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "SFAR Syrine", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "TASKUN Meryem Sophia", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -5582,8 +5701,8 @@
                         { "name": "HAOUARI Maya", "club": "TCKL", "license": "25/002264" }
                     ],
                     "ranking": [
-                        { "rank": 1, "name": "BOUGHANMI Yasmine", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
-                        { "rank": 2, "name": "ALAIAT Maryam", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "BOUGHANMI Yasmine", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
+                        { "rank": 9, "name": "ALAIAT Maryam", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 3, "name": "BEN ARBI Manessa", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" },
                         { "rank": 4, "name": "HAOUARI Maya", "pts": "0", "g": "0", "p": "0", "jg": "0", "jp": "0" }
                     ]
@@ -7269,6 +7388,21 @@ const tcmoTournamentId = "CRITERIUM DES LUTINS DE TENNIS CLUB DE MONASTIR (RÉGI
                     }
                     renderCumulativeResults(lastCategory);
                 });
+            });
+             clubPerformanceContent.addEventListener('click', e => {
+                const link = e.target.closest('.club-link');
+                if (!link) return;
+
+                e.preventDefault();
+                const clubName = link.dataset.clubName;
+                const action = link.dataset.action;
+                const category = lastCategory;
+
+                if (action === 'view-club-players') {
+                    renderClubDetailView(clubName, category);
+                } else if (action === 'view-club-tournaments') {
+                    renderClubTournamentsView(clubName, category);
+                }
             });
         }
     </script>
